@@ -1,0 +1,18 @@
+{
+    "interval": "5m",
+    "high_rmse": 18.32,
+    "high_mae": 11.39,
+    "high_mape": 0.05,
+    "low_rmse": 20.37,
+    "low_mae": 10.9,
+    "low_mape": 0.05,
+    "close_rmse": 25.41,
+    "close_r2": 0.9588,
+    "best_val_loss": 9.5e-07,
+    "last_trained_date": "2026-10-29 21:32:15",
+    "total_training_samples": 3767,
+    "total_test_samples": 333,
+    "lookback_window": 30,
+    "forecast_horizon": 6,
+    "model_save_path": "C:\\Users\\hp\\Nifty-50_predictor\\models\\nifty50_lstm_5m.pth"
+}

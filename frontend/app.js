@@ -1,20 +1,19 @@
 /**
  * NIFTY-50 AI Forecaster Frontend Application
- * Interacts with FastAPI backend to render unified historical and predicted time-series charts.
+ * Supports 5-Minute Intraday and Daily Unified Charts with Real-Time Timestamps.
  */
 
 let appState = {
-    historyDays: 90,
+    interval: '5m',
+    bars: 75, // 75 5-min candles = 1 full trading day of 6.25 hrs (09:15 to 15:30)
     horizon: 6,
     chartType: 'candlestick',
     showSMA: true,
     showChannel: true,
-    showBB: false,
     chartData: null
 };
 
 // DOM Elements
-const chartContainer = document.getElementById('plotly-chart-container');
 const chartLoader = document.getElementById('chart-loader');
 const btnRefresh = document.getElementById('btn-refresh');
 const refreshIcon = document.getElementById('refresh-icon');
@@ -23,32 +22,102 @@ const btnCandle = document.getElementById('btn-chart-candle');
 const btnLine = document.getElementById('btn-chart-line');
 const toggleSMA = document.getElementById('toggle-sma');
 const toggleChannel = document.getElementById('toggle-channel');
-const toggleBB = document.getElementById('toggle-bb');
 const btnDownloadCSV = document.getElementById('btn-download-csv');
 const btnRetrain = document.getElementById('btn-retrain');
+const btnInterval5m = document.getElementById('btn-interval-5m');
+const btnInterval1d = document.getElementById('btn-interval-1d');
+const badgeInterval = document.getElementById('badge-interval');
+const timeframeContainer = document.getElementById('timeframe-container');
+const labelActiveTimeframe = document.getElementById('label-active-timeframe');
+const labelActiveIntervalBox = document.getElementById('label-active-interval-box');
+const clockEl = document.getElementById('current-clock');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    updateClock();
+    setInterval(updateClock, 1000);
+    renderTimeframeButtons();
     setupEventListeners();
     fetchChartData(false);
 });
 
+function updateClock() {
+    const now = new Date();
+    if (clockEl) {
+        clockEl.textContent = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+                              ' ' + now.toLocaleTimeString('en-US', { hour12: false }) + ' IST';
+    }
+}
+
+function renderTimeframeButtons() {
+    if (!timeframeContainer) return;
+    if (appState.interval === '5m') {
+        timeframeContainer.innerHTML = `
+            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="35">3 Hrs</button>
+            <button class="btn-timeframe px-2.5 py-1 rounded active bg-emerald-600 text-white font-bold" data-bars="75">1 Day (75c)</button>
+            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="150">2 Days</button>
+            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="300">4 Days</button>
+        `;
+    } else {
+        timeframeContainer.innerHTML = `
+            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="30">1M</button>
+            <button class="btn-timeframe px-2.5 py-1 rounded active bg-sky-600 text-white font-bold" data-bars="90">3M</button>
+            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="180">6M</button>
+            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="365">1Y</button>
+        `;
+    }
+
+    // Attach listeners
+    timeframeContainer.querySelectorAll('.btn-timeframe').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            timeframeContainer.querySelectorAll('.btn-timeframe').forEach(b => {
+                b.classList.remove('active', 'bg-emerald-600', 'bg-sky-600', 'text-white', 'font-bold');
+            });
+            const activeColor = appState.interval === '5m' ? 'bg-emerald-600' : 'bg-sky-600';
+            e.target.classList.add('active', activeColor, 'text-white', 'font-bold');
+            appState.bars = parseInt(e.target.dataset.bars);
+            fetchChartData(false);
+        });
+    });
+}
+
 function setupEventListeners() {
+    // 5m vs 1d Toggle
+    btnInterval5m.addEventListener('click', () => {
+        if (appState.interval === '5m') return;
+        appState.interval = '5m';
+        appState.bars = 75;
+        btnInterval5m.className = 'px-3 py-1.5 rounded bg-emerald-600 text-white font-bold transition flex items-center gap-1.5';
+        btnInterval1d.className = 'px-3 py-1.5 rounded text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        badgeInterval.className = 'px-2 py-0.5 text-xs font-semibold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        badgeInterval.textContent = '5-Min Intraday';
+        labelActiveTimeframe.textContent = '5-Minute Candles';
+        labelActiveTimeframe.className = 'text-emerald-400 font-bold';
+        labelActiveIntervalBox.textContent = '5-Minute Candles';
+        renderTimeframeButtons();
+        fetchChartData(false);
+    });
+
+    btnInterval1d.addEventListener('click', () => {
+        if (appState.interval === '1d') return;
+        appState.interval = '1d';
+        appState.bars = 90;
+        btnInterval1d.className = 'px-3 py-1.5 rounded bg-sky-600 text-white font-bold transition flex items-center gap-1.5';
+        btnInterval5m.className = 'px-3 py-1.5 rounded text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        badgeInterval.className = 'px-2 py-0.5 text-xs font-semibold rounded bg-sky-500/20 text-sky-400 border border-sky-500/30';
+        badgeInterval.textContent = 'Daily (1D)';
+        labelActiveTimeframe.textContent = 'Daily Candles (1D)';
+        labelActiveTimeframe.className = 'text-sky-400 font-bold';
+        labelActiveIntervalBox.textContent = 'Daily Candles';
+        renderTimeframeButtons();
+        fetchChartData(false);
+    });
+
     // Refresh button
     btnRefresh.addEventListener('click', () => {
         refreshIcon.classList.add('animate-spin');
         fetchChartData(true).finally(() => {
             setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
-        });
-    });
-
-    // Timeframe selector
-    document.querySelectorAll('.btn-timeframe').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.btn-timeframe').forEach(b => b.classList.remove('active', 'bg-sky-600', 'text-white', 'font-bold'));
-            e.target.classList.add('active', 'bg-sky-600', 'text-white', 'font-bold');
-            appState.historyDays = parseInt(e.target.dataset.days);
-            fetchChartData(false);
         });
     });
 
@@ -88,11 +157,6 @@ function setupEventListeners() {
         renderUnifiedChart();
     });
 
-    toggleBB.addEventListener('change', (e) => {
-        appState.showBB = e.target.checked;
-        renderUnifiedChart();
-    });
-
     // CSV Download
     btnDownloadCSV.addEventListener('click', downloadForecastCSV);
 
@@ -106,14 +170,13 @@ function setupEventListeners() {
 async function fetchChartData(forceRefresh = false) {
     showLoader(true);
     try {
-        const url = `/api/chart-data?history_days=${appState.historyDays}&horizon=${appState.horizon}&force_refresh=${forceRefresh}`;
+        const url = `/api/chart-data?interval=${appState.interval}&bars=${appState.bars}&horizon=${appState.horizon}&force_refresh=${forceRefresh}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         
         const data = await res.json();
         appState.chartData = data;
         
-        // Update components
         updateMarketKPIs(data.market_summary);
         renderUnifiedChart();
         renderForecastCards(data.forecast);
@@ -160,7 +223,7 @@ function updateMarketKPIs(summary) {
     document.getElementById('kpi-high').textContent = `₹${summary.last_high.toLocaleString('en-IN')}`;
     document.getElementById('kpi-low').textContent = `₹${summary.last_low.toLocaleString('en-IN')}`;
     document.getElementById('kpi-52w').textContent = `₹${summary.low_52w.toLocaleString('en-IN')} - ₹${summary.high_52w.toLocaleString('en-IN')}`;
-    document.getElementById('kpi-rsi').textContent = summary.current_rsi.toFixed(1);
+    document.getElementById('kpi-rsi').textContent = summary.current_rsi ? summary.current_rsi.toFixed(1) : '--';
 }
 
 /**
@@ -169,10 +232,10 @@ function updateMarketKPIs(summary) {
 function renderUnifiedChart() {
     if (!appState.chartData) return;
     
-    const { historical, forecast, transition_date, transition_price } = appState.chartData;
+    const { historical, forecast, transition_date, transition_price, interval } = appState.chartData;
     const traces = [];
 
-    // 1. HISTORICAL COMPONENT (Current Actual Market Data)
+    // 1. HISTORICAL COMPONENT
     const histDates = historical.map(d => d.date);
     const histOpens = historical.map(d => d.open);
     const histHighs = historical.map(d => d.high);
@@ -180,10 +243,9 @@ function renderUnifiedChart() {
     const histCloses = historical.map(d => d.close);
 
     if (appState.chartType === 'candlestick') {
-        // Historical Actual Candlesticks
         traces.push({
             type: 'candlestick',
-            name: 'Historical NIFTY-50',
+            name: `Historical ${interval === '5m' ? '5-Min' : 'Daily'} Candles`,
             x: histDates,
             open: histOpens,
             high: histHighs,
@@ -191,23 +253,20 @@ function renderUnifiedChart() {
             close: histCloses,
             increasing: { line: { color: '#22c55e', width: 1.5 }, fillcolor: '#22c55e' },
             decreasing: { line: { color: '#ef4444', width: 1.5 }, fillcolor: '#ef4444' },
-            hoverinfo: 'x+y+text',
             hoverlabel: { bgcolor: '#1e293b' }
         });
     } else {
-        // Historical Line Chart
         traces.push({
             type: 'scatter',
             mode: 'lines',
             name: 'Historical Close',
             x: histDates,
             y: histCloses,
-            line: { color: '#38bdf8', width: 2.2 },
-            hoverinfo: 'x+y'
+            line: { color: '#38bdf8', width: 2.2 }
         });
     }
 
-    // 2. TECHNICAL OVERLAYS (on historical portion)
+    // 2. TECHNICAL OVERLAYS
     if (appState.showSMA) {
         traces.push({
             type: 'scatter',
@@ -220,40 +279,15 @@ function renderUnifiedChart() {
         });
     }
 
-    if (appState.showBB) {
-        traces.push({
-            type: 'scatter',
-            mode: 'lines',
-            name: 'Upper BB',
-            x: histDates,
-            y: historical.map(d => d.upper_bb),
-            line: { color: 'rgba(148, 163, 184, 0.4)', dash: 'dot', width: 1 },
-            hoverinfo: 'skip'
-        });
-        traces.push({
-            type: 'scatter',
-            mode: 'lines',
-            name: 'Lower BB',
-            x: histDates,
-            y: historical.map(d => d.lower_bb),
-            line: { color: 'rgba(148, 163, 184, 0.4)', dash: 'dot', width: 1 },
-            fill: 'tonexty',
-            fillcolor: 'rgba(148, 163, 184, 0.05)',
-            hoverinfo: 'skip'
-        });
-    }
-
     // 3. PREDICTED COMPONENT (Continuous on the EXACT SAME TIME AXIS)
-    // Bridge from last historical date to forecast dates
     const lastHist = historical[historical.length - 1];
     const bridgeDates = [lastHist.date, ...forecast.map(f => f.date)];
     const bridgeHighs = [lastHist.high, ...forecast.map(f => f.high)];
     const bridgeLows = [lastHist.low, ...forecast.map(f => f.low)];
     const bridgeCloses = [lastHist.close, ...forecast.map(f => f.close)];
 
-    // Shaded Forecast Channel (High-Low Envelope)
+    // Shaded Forecast Channel
     if (appState.showChannel) {
-        // Upper High Boundary
         traces.push({
             type: 'scatter',
             mode: 'lines',
@@ -261,11 +295,9 @@ function renderUnifiedChart() {
             x: bridgeDates,
             y: bridgeHighs,
             line: { color: '#4ade80', width: 2.5, dash: 'dash' },
-            hoverinfo: 'x+y',
-            hoverlabel: { bgcolor: '#064e3b' }
+            hoverinfo: 'x+y'
         });
 
-        // Lower Low Boundary with Shaded Fill between High and Low
         traces.push({
             type: 'scatter',
             mode: 'lines',
@@ -273,14 +305,13 @@ function renderUnifiedChart() {
             x: bridgeDates,
             y: bridgeLows,
             fill: 'tonexty',
-            fillcolor: 'rgba(56, 189, 248, 0.15)', // Shaded prediction channel
+            fillcolor: 'rgba(56, 189, 248, 0.15)',
             line: { color: '#38bdf8', width: 2.5, dash: 'dash' },
-            hoverinfo: 'x+y',
-            hoverlabel: { bgcolor: '#0c4a6e' }
+            hoverinfo: 'x+y'
         });
     }
 
-    // Predicted Candlesticks (rendered directly in the forecast window)
+    // Predicted Candlesticks
     if (appState.chartType === 'candlestick') {
         traces.push({
             type: 'candlestick',
@@ -292,12 +323,11 @@ function renderUnifiedChart() {
             close: forecast.map(f => f.close),
             increasing: { line: { color: '#34d399', width: 2 }, fillcolor: 'rgba(52, 211, 153, 0.6)' },
             decreasing: { line: { color: '#f87171', width: 2 }, fillcolor: 'rgba(248, 113, 113, 0.6)' },
-            hoverinfo: 'x+y+text',
             hoverlabel: { bgcolor: '#1e293b' }
         });
     }
 
-    // Predicted Close Trajectory Line
+    // Predicted Close Line
     traces.push({
         type: 'scatter',
         mode: 'lines+markers',
@@ -305,11 +335,14 @@ function renderUnifiedChart() {
         x: bridgeDates,
         y: bridgeCloses,
         line: { color: '#fbbf24', width: 2, dash: 'dot' },
-        marker: { size: 6, color: '#fbbf24' },
-        hoverinfo: 'x+y'
+        marker: { size: 6, color: '#fbbf24' }
     });
 
-    // 4. VERTICAL DEMARCATION LINE (Today vs Forecast Horizon)
+    // 4. VERTICAL DEMARCATION LINE
+    const demarcationText = interval === '5m' 
+        ? `⚡ LATEST: ${transition_date.split(' ')[1]} IST | NEXT 5-MIN CANDLES ➔` 
+        : `⚡ TODAY: ${transition_date} | FUTURE FORECAST ➔`;
+
     const shapes = [
         {
             type: 'line',
@@ -331,7 +364,7 @@ function renderUnifiedChart() {
             x: transition_date,
             y: 0.98,
             yref: 'paper',
-            text: '⚡ TODAY (Actual) | FORECAST ➔',
+            text: demarcationText,
             showarrow: false,
             font: {
                 color: '#38bdf8',
@@ -346,7 +379,6 @@ function renderUnifiedChart() {
         }
     ];
 
-    // Plotly Layout Configuration
     const layout = {
         template: 'plotly_dark',
         paper_bgcolor: '#111827',
@@ -401,8 +433,7 @@ function renderForecastCards(forecast) {
 
     grid.innerHTML = forecast.map((f, i) => {
         const isBullish = f.trend_bias.includes('Bullish');
-        const isBearish = f.trend_bias.includes('Bearish');
-        const badgeClass = isBullish ? 'badge-bullish' : (isBearish ? 'badge-bearish' : 'badge-neutral');
+        const badgeClass = isBullish ? 'badge-bullish' : (f.trend_bias.includes('Bearish') ? 'badge-bearish' : 'badge-neutral');
         const changeSign = f.change_pct >= 0 ? '+' : '';
 
         return `
@@ -414,7 +445,7 @@ function renderForecastCards(forecast) {
                             ${changeSign}${f.change_pct.toFixed(2)}%
                         </span>
                     </div>
-                    <div class="text-[11px] text-slate-400 font-medium mb-3">${f.display_date}</div>
+                    <div class="text-[11px] text-slate-300 font-mono font-semibold mb-3">${f.display_date}</div>
 
                     <!-- Predicted High -->
                     <div class="mb-2 bg-emerald-950/30 p-2 rounded-lg border border-emerald-500/20">
@@ -435,7 +466,7 @@ function renderForecastCards(forecast) {
 
                 <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between font-['JetBrains_Mono']">
                     <span>Close: <b class="text-slate-200">₹${Math.round(f.close).toLocaleString('en-IN')}</b></span>
-                    <span>Spread: <b class="text-sky-300">₹${Math.round(f.spread)}</b></span>
+                    <span>Spread: <b class="text-sky-300">₹${f.spread.toFixed(1)}</b></span>
                 </div>
             </div>
         `;
@@ -455,7 +486,7 @@ function renderForecastTable(forecast) {
         return `
             <tr class="hover:bg-slate-800/40 transition">
                 <td class="py-2.5 px-3 font-bold text-sky-400">${f.day}</td>
-                <td class="py-2.5 px-3 text-slate-300">${f.display_date}</td>
+                <td class="py-2.5 px-3 text-slate-200 font-semibold">${f.display_date}</td>
                 <td class="py-2.5 px-3 text-right font-bold text-emerald-400">₹${f.high.toFixed(2)}</td>
                 <td class="py-2.5 px-3 text-right font-bold text-rose-400">₹${f.low.toFixed(2)}</td>
                 <td class="py-2.5 px-3 text-right text-amber-300">₹${f.close.toFixed(2)}</td>
@@ -470,21 +501,18 @@ function renderForecastTable(forecast) {
 
 function updateModelMetrics(metrics) {
     if (!metrics) return;
-    if (metrics.high_mape) {
+    if (metrics.high_mape !== undefined) {
         document.getElementById('stat-high-mape').textContent = `${metrics.high_mape}%`;
     }
-    if (metrics.low_mape) {
+    if (metrics.low_mape !== undefined) {
         document.getElementById('stat-low-mape').textContent = `${metrics.low_mape}%`;
     }
 }
 
-/**
- * CSV Export
- */
 function downloadForecastCSV() {
     if (!appState.chartData || !appState.chartData.forecast) return;
     
-    const headers = ['Day', 'Date', 'Predicted_High', 'Predicted_Low', 'Predicted_Close', 'Predicted_Open', 'Spread', 'Change_%', 'Trend_Bias'];
+    const headers = ['Interval', 'DateTime', 'Predicted_High', 'Predicted_Low', 'Predicted_Close', 'Predicted_Open', 'Spread', 'Change_%', 'Trend_Bias'];
     const rows = appState.chartData.forecast.map(f => [
         f.day,
         `"${f.display_date}"`,
@@ -501,34 +529,30 @@ function downloadForecastCSV() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `nifty50_forecast_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `nifty50_${appState.interval}_forecast.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-/**
- * Retrain Handler
- */
 async function handleRetrain() {
     const statusEl = document.getElementById('retrain-status');
-    const confirmRetrain = confirm('Trigger retraining of PyTorch LSTM on historical NIFTY-50 dataset? This runs in background on the server.');
+    const confirmRetrain = confirm(`Trigger retraining of active ${appState.interval} PyTorch LSTM model?`);
     if (!confirmRetrain) return;
 
-    statusEl.textContent = 'Retraining started...';
+    statusEl.textContent = 'Retraining in progress...';
     statusEl.className = 'text-[11px] text-amber-400 font-semibold animate-pulse';
 
     try {
         const res = await fetch('/api/retrain', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ epochs: 30, learning_rate: 0.002 })
+            body: JSON.stringify({ interval: appState.interval, epochs: 25, learning_rate: 0.003 })
         });
         const data = await res.json();
         alert(data.message);
     } catch (e) {
         statusEl.textContent = 'Error';
-        alert('Failed to trigger retrain: ' + e);
+        alert('Failed: ' + e);
     }
 }
-

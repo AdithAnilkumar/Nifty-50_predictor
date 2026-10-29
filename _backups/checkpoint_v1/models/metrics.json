@@ -1,0 +1,16 @@
+{
+    "high_rmse": 641.01,
+    "high_mae": 514.21,
+    "high_mape": 2.04,
+    "low_rmse": 707.23,
+    "low_mae": 574.45,
+    "low_mape": 2.31,
+    "close_rmse": 683.15,
+    "close_r2": 0.5872,
+    "best_val_loss": 0.000461,
+    "last_trained_date": "2026-10-29 20:58:19",
+    "total_training_samples": 2245,
+    "total_test_samples": 284,
+    "lookback_window": 60,
+    "forecast_horizon": 6
+}

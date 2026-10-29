@@ -1,0 +1,21 @@
+{
+    "interval": "1d",
+    "seq_len": 30,
+    "horizon": 6,
+    "hidden_dim": 64,
+    "num_layers": 2,
+    "in_features": 11,
+    "feature_cols": [
+        "Close_rel",
+        "High_rel",
+        "Low_rel",
+        "Open_rel",
+        "SMA_10_rel",
+        "SMA_30_rel",
+        "EMA_20_rel",
+        "RSI_norm",
+        "Return",
+        "Range",
+        "Vol_norm"
+    ]
+}
