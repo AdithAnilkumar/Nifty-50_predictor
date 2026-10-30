@@ -155,8 +155,8 @@
                     <div class="flex items-center gap-4 font-mono text-mutedText">
                         <span class="font-sans font-bold text-white text-sm" id="chart-title">NIFTY 50 • 5m</span>
                         <span>O: <b id="bar-open" class="text-white">--</b></span>
-                        <span>H: <b id="bar-high" class="text-electricLime">--</b></span>
-                        <span>L: <b id="bar-low" class="text-coralRed">--</b></span>
+                        <span>H: <b id="bar-high" class="text-[#089981]">--</b></span>
+                        <span>L: <b id="bar-low" class="text-[#f23645]">--</b></span>
                         <span>C: <b id="bar-close" class="text-white">--</b></span>
                     </div>
 
@@ -179,19 +179,19 @@
                     </div>
                 </div>
 
-                <!-- Canvas Mount -->
-                <div class="relative w-full h-[480px] sm:h-[540px] bg-[#0A0A0A]/95">
+                <!-- Canvas Mount (Default TradingView Crisp White Canvas) -->
+                <div class="relative w-full h-[480px] sm:h-[540px] bg-white">
                     <div id="chart-mount" class="w-full h-full"></div>
 
                     <!-- Live Stream Floating Badge -->
-                    <div class="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-2 bg-[#141414]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#282828] text-[10px] font-mono text-mutedText shadow-lg">
-                        <span class="w-1.5 h-1.5 rounded-full bg-electricLime animate-ping"></span>
-                        <span>3D Live Tick: <b id="tick-counter" class="text-white">0</b></span>
+                    <div class="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#e0e3eb] text-[10px] font-mono text-[#131722] shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#089981] animate-ping"></span>
+                        <span>Live TradingView Stream: <b id="tick-counter" class="text-[#131722]">0</b></span>
                     </div>
 
                     <!-- Loader -->
-                    <div id="chart-loader" class="absolute inset-0 bg-[#0A0A0A]/85 backdrop-blur-xs flex items-center justify-center z-20 transition-opacity">
-                        <div class="w-7 h-7 border-2 border-electricLime border-t-transparent rounded-full animate-spin"></div>
+                    <div id="chart-loader" class="absolute inset-0 bg-white/85 backdrop-blur-xs flex items-center justify-center z-20 transition-opacity">
+                        <div class="w-7 h-7 border-2 border-[#2962ff] border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 </div>
 

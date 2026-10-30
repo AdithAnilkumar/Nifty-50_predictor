@@ -209,7 +209,7 @@ function initThreeJSScene() {
 }
 
 // ==========================================
-// 2. CHART ENGINE (Lightweight Charts v4.2.0)
+// 2. CHART ENGINE (Default TradingView Theme)
 // ==========================================
 function initChartEngine() {
     if (!chartMount) return;
@@ -219,40 +219,40 @@ function initChartEngine() {
         width: chartMount.clientWidth,
         height: chartMount.clientHeight,
         layout: {
-            background: { type: 'solid', color: '#0A0A0A' },
-            textColor: '#8E8E93',
-            fontFamily: '"Plus Jakarta Sans", sans-serif',
+            background: { type: 'solid', color: '#FFFFFF' }, // Default TradingView Crisp White
+            textColor: '#131722', // Default TradingView Dark Label Text
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif",
             fontSize: 11
         },
         grid: {
-            vertLines: { color: '#161616' },
-            horzLines: { color: '#161616' }
+            vertLines: { color: '#F0F3FA' }, // Default TradingView Grid
+            horzLines: { color: '#F0F3FA' }
         },
         crosshair: {
             mode: LightweightCharts.CrosshairMode.Normal,
             vertLine: {
-                color: '#333333',
+                color: '#758696',
                 width: 1,
                 style: LightweightCharts.LineStyle.Dashed,
-                labelBackgroundColor: '#CCFF00',
-                labelTextColor: '#000000'
+                labelBackgroundColor: '#131722',
+                labelTextColor: '#FFFFFF'
             },
             horzLine: {
-                color: '#333333',
+                color: '#758696',
                 width: 1,
                 style: LightweightCharts.LineStyle.Dashed,
-                labelBackgroundColor: '#CCFF00',
-                labelTextColor: '#000000'
+                labelBackgroundColor: '#131722',
+                labelTextColor: '#FFFFFF'
             }
         },
         rightPriceScale: {
-            borderColor: '#222222',
+            borderColor: '#E0E3EB', // Default TradingView Scale Border
             visible: true,
             autoScale: true,
             scaleMargins: { top: 0.08, bottom: 0.18 }
         },
         timeScale: {
-            borderColor: '#222222',
+            borderColor: '#E0E3EB',
             timeVisible: true,
             secondsVisible: false,
             fixLeftEdge: true,
@@ -271,9 +271,9 @@ function initChartEngine() {
         }
     });
 
-    // Volume Overlay (Bottom 15%)
+    // Volume Overlay (TradingView Default Bottom 15%)
     volumeSeries = chart.addHistogramSeries({
-        color: '#CCFF00',
+        color: '#089981',
         priceFormat: { type: 'volume' },
         priceScaleId: 'volume',
         scaleMargins: { top: 0.85, bottom: 0 }
@@ -282,55 +282,55 @@ function initChartEngine() {
         scaleMargins: { top: 0.85, bottom: 0 }
     });
 
-    // Candlesticks: Electric Lime (#CCFF00) Up, Coral Red (#FF3366) Down
+    // Candlesticks: Default TradingView Green (#089981) Up, Red (#F23645) Down
     candleSeries = chart.addCandlestickSeries({
-        upColor: '#CCFF00',
-        downColor: '#FF3366',
-        borderUpColor: '#CCFF00',
-        borderDownColor: '#FF3366',
-        wickUpColor: '#CCFF00',
-        wickDownColor: '#FF3366'
+        upColor: '#089981',
+        downColor: '#F23645',
+        borderUpColor: '#089981',
+        borderDownColor: '#F23645',
+        wickUpColor: '#089981',
+        wickDownColor: '#F23645'
     });
 
-    // SMA 20 Overlay (Slate Gray)
+    // SMA 20 Overlay (Default TradingView Amber #F59E0B)
     smaSeries = chart.addLineSeries({
-        color: '#6E6E73',
+        color: '#F59E0B',
         lineWidth: 1.5,
         title: 'SMA 20',
         crosshairMarkerVisible: false
     });
 
-    // AI Forecast Predicted Candles (Electric Lime Glow)
+    // AI Forecast Predicted Candles (TradingView Blue #2962FF)
     forecastCandleSeries = chart.addCandlestickSeries({
-        upColor: '#CCFF00',
-        downColor: '#8E8E93',
-        borderUpColor: '#FFFFFF',
-        borderDownColor: '#FF3366',
-        wickUpColor: '#CCFF00',
-        wickDownColor: '#FF3366',
+        upColor: '#2962FF',
+        downColor: '#7C3AED',
+        borderUpColor: '#2962FF',
+        borderDownColor: '#7C3AED',
+        wickUpColor: '#2962FF',
+        wickDownColor: '#7C3AED',
         priceLineVisible: false
     });
 
-    // Forecast Upper Boundary (Electric Lime)
+    // Forecast Upper Boundary (TradingView Green #089981)
     forecastHighLine = chart.addLineSeries({
-        color: '#CCFF00',
+        color: '#089981',
         lineWidth: 1.5,
         lineStyle: LightweightCharts.LineStyle.Dashed,
         title: 'Pred High'
     });
 
-    // Forecast Lower Boundary (Coral Red)
+    // Forecast Lower Boundary (TradingView Red #F23645)
     forecastLowLine = chart.addLineSeries({
-        color: '#FF3366',
+        color: '#F23645',
         lineWidth: 1.5,
         lineStyle: LightweightCharts.LineStyle.Dashed,
         title: 'Pred Low'
     });
 
-    // Forecast Close Path (Pure White)
+    // Forecast Close Path (TradingView Blue #2962FF)
     forecastCloseLine = chart.addLineSeries({
-        color: '#FFFFFF',
-        lineWidth: 1.5,
+        color: '#2962FF',
+        lineWidth: 2,
         lineStyle: LightweightCharts.LineStyle.Dotted,
         title: 'Target Close'
     });
@@ -373,7 +373,7 @@ async function loadHistoricalData() {
         const customVolBars = data.volume_bars.map(v => ({
             time: v.time,
             value: v.value,
-            color: v.color.includes('089981') ? 'rgba(204, 255, 0, 0.45)' : 'rgba(255, 51, 102, 0.4)'
+            color: v.color.includes('089981') ? 'rgba(8, 153, 129, 0.5)' : 'rgba(242, 54, 69, 0.5)'
         }));
         volumeSeries.setData(customVolBars);
 
@@ -394,9 +394,9 @@ async function loadHistoricalData() {
                 {
                     time: data.transition_time,
                     position: 'aboveBar',
-                    color: '#CCFF00',
+                    color: '#2962FF',
                     shape: 'arrowDown',
-                    text: '3D Neural Horizon ➔'
+                    text: 'AI Projection ➔'
                 }
             ]);
         }
@@ -440,9 +440,9 @@ async function streamTick() {
             candleSeries.update(tick.candle);
         }
 
-        // 2. Live Volume Update
+        // 2. Live Volume Update (Default TradingView Green / Red)
         if (volumeSeries && tick.volume) {
-            const volColor = tick.candle.close >= tick.candle.open ? 'rgba(204, 255, 0, 0.45)' : 'rgba(255, 51, 102, 0.4)';
+            const volColor = tick.candle.close >= tick.candle.open ? 'rgba(8, 153, 129, 0.5)' : 'rgba(242, 54, 69, 0.5)';
             volumeSeries.update({ ...tick.volume, color: volColor });
         }
 
