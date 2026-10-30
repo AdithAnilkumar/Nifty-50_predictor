@@ -1,104 +1,70 @@
-/* Curated Organic Theme: Sage Green (#87A96B), Walnut Brown (#5A3E2B), Amber Glow (#D5851F) */
-
-:root {
-    --color-sage: #87A96B;
-    --color-sage-deep: #567340;
-    --color-walnut: #5A3E2B;
-    --color-walnut-dark: #23150D;
-    --color-amber: #D5851F;
-    --color-terracotta: #C0583A;
-    --color-sand: #F5F1EB;
-    --color-sand-muted: #ECE5DB;
-    --color-border: #E2D8CC;
-}
+/* Minimalist Clean Theme */
 
 body {
-    background-color: var(--color-sand);
-    color: var(--color-walnut-dark);
+    background-color: #FAFAFA;
+    color: #0F172A;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Headings in Cormorant Garamond */
-h1, h2, h3, h4, .font-serif {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    letter-spacing: -0.015em;
-}
-
-/* Smooth Scrollbars */
+/* Minimal Scrollbars */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
 }
 ::-webkit-scrollbar-track {
-    background: var(--color-sand);
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #D4C7B8;
-    border-radius: 4px;
+    background: #E2E8F0;
+    border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #BEB09F;
+    background: #CBD5E1;
 }
 
-/* Prediction Cards */
-.prediction-card {
+/* Minimalist Prediction Cards */
+.min-card {
     background: #FFFFFF;
-    border: 1px solid var(--color-border);
-    border-radius: 18px;
-    padding: 16px;
-    box-shadow: 0 4px 18px -2px rgba(90, 62, 43, 0.05);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 12px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.prediction-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--color-amber);
-    box-shadow: 0 10px 24px -4px rgba(213, 133, 31, 0.15);
+.min-card:hover {
+    border-color: #94A3B8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Trend Badges */
-.badge-bullish {
-    background-color: rgba(135, 169, 107, 0.16);
-    color: #4C6A34;
-    border: 1px solid rgba(135, 169, 107, 0.4);
+/* Minimalist Badges */
+.badge-up {
+    background-color: #ECFDF5;
+    color: #059669;
 }
 
-.badge-bearish {
-    background-color: rgba(192, 88, 58, 0.14);
-    color: #A0452C;
-    border: 1px solid rgba(192, 88, 58, 0.35);
+.badge-down {
+    background-color: #FFF1F2;
+    color: #E11D48;
 }
 
-.badge-neutral {
-    background-color: rgba(213, 133, 31, 0.14);
-    color: #9A5A0A;
-    border: 1px solid rgba(213, 133, 31, 0.35);
+/* Live Tick Flashes */
+@keyframes tickUp {
+    0% { background-color: #D1FAE5; }
+    100% { background-color: transparent; }
 }
 
-/* Range buttons active state */
-.btn-range.active {
-    background-color: var(--color-sand-muted);
-    color: var(--color-walnut-dark);
-    font-weight: 700;
+@keyframes tickDown {
+    0% { background-color: #FFE4E6; }
+    100% { background-color: transparent; }
 }
 
-/* Live Tick Flash Keyframes */
-@keyframes flashUptick {
-    0% { background-color: rgba(135, 169, 107, 0.4); transform: scale(1.02); }
-    100% { background-color: transparent; transform: scale(1); }
+.tick-up {
+    animation: tickUp 0.6s ease-out;
 }
 
-@keyframes flashDowntick {
-    0% { background-color: rgba(192, 88, 58, 0.4); transform: scale(1.02); }
-    100% { background-color: transparent; transform: scale(1); }
-}
-
-.flash-uptick {
-    animation: flashUptick 0.8s ease-out;
-}
-
-.flash-downtick {
-    animation: flashDowntick 0.8s ease-out;
+.tick-down {
+    animation: tickDown 0.6s ease-out;
 }
