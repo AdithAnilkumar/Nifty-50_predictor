@@ -3,31 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIFTY 50 Index • TradingView AI Forecaster</title>
+    <title>NIFTY 50 • Neural Time Series Intelligence</title>
     
-    <!-- TradingView Lightweight Charts (v4.2.0 - Official TradingView Library) -->
+    <!-- TradingView Lightweight Charts Library (for fluid, accurate canvas rendering) -->
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     
-    <!-- Official TradingView Widget Script -->
-    <script src="https://s3.tradingview.com/tv.js"></script>
+    <!-- Google Fonts: Cormorant Garamond (Editorial Serif), Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        tvgreen: '#089981',
-                        tvred: '#f23645',
-                        tvblue: '#2962ff',
-                        tvbg: '#ffffff',
-                        tvborder: '#e0e3eb',
-                        tvgray: '#787b86',
-                        tvdarkbg: '#131722',
-                        tvdarkborder: '#2a2e39',
-                        tvdarkcard: '#1e222d'
+                        sage: {
+                            50: '#F4F7F2',
+                            100: '#E7EFE3',
+                            300: '#B6D1A3',
+                            500: '#87A96B', // Main Sage Green
+                            600: '#6E9152',
+                            700: '#55723E',
+                            800: '#3D522C'
+                        },
+                        walnut: {
+                            50: '#F9F7F5',
+                            100: '#F0EBE6',
+                            200: '#DFD5CC',
+                            400: '#8A6A50',
+                            600: '#5A3E2B', // Main Walnut Brown
+                            700: '#462F20',
+                            800: '#342217',
+                            900: '#23160F'
+                        },
+                        amberGlow: {
+                            50: '#FCF7F0',
+                            100: '#F7EBDA',
+                            300: '#E9C48F',
+                            500: '#D5851F', // Main Amber Glow
+                            600: '#B86F15',
+                            700: '#94550D'
+                        },
+                        terracotta: '#C0583A',
+                        sand: '#FAF7F2',
+                        sandMuted: '#F2EDE4',
+                        sandBorder: '#E6DFD5',
+                        sandDark: '#DDD4C7'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', '-apple-system', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
                     }
                 }
             }
@@ -36,297 +65,234 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts: Inter & Roboto -->
-    <link href="https://fonts.googleapis.com/css2?family=Trebuchet+MS&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-[#f0f3fa] text-[#131722] font-['Trebuchet_MS',sans-serif] antialiased select-none overflow-hidden h-screen flex flex-col">
+<body class="bg-sand text-walnut-900 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Top TradingView Navigation Header Bar -->
-    <header class="h-[46px] bg-white border-b border-[#e0e3eb] px-3 flex items-center justify-between text-xs shrink-0 z-40">
-        
-        <!-- Left: Symbols & Controls -->
-        <div class="flex items-center gap-1 sm:gap-2">
-            <!-- User Avatar -->
-            <div class="w-7 h-7 rounded-full bg-[#26a69a] text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                A
+    <!-- Top Editorial Header Bar -->
+    <header class="bg-sand/90 backdrop-blur-md border-b border-sandBorder sticky top-0 z-40 px-6 py-3.5 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            <!-- Left: Brand & Title -->
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-walnut-600 text-sand flex items-center justify-center shadow-sm">
+                    <span class="font-serif font-bold text-xl italic tracking-tighter">N</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-serif text-2xl font-bold tracking-tight text-walnut-900">NIFTY 50</h1>
+                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sage-100 text-sage-800 border border-sage-300">
+                            Neural Intelligence
+                        </span>
+                    </div>
+                    <p class="text-xs text-walnut-400 font-medium tracking-wide">Time Series Forecasting • Experiment 13 (CO4) • Deep LSTM Model</p>
+                </div>
             </div>
 
-            <!-- Symbol Search Button -->
-            <button class="flex items-center gap-1.5 px-2.5 py-1 rounded hover:bg-[#f0f3fa] font-bold text-sm text-[#131722] transition">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>NIFTY</span>
-                <span class="text-[10px] text-slate-400 font-normal">NSE</span>
-            </button>
+            <!-- Center/Right: Live Price Banner & Controls -->
+            <div class="flex flex-wrap items-center gap-3">
+                
+                <!-- Quick Market Stat Badge -->
+                <div class="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-white border border-sandBorder shadow-xs">
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-[10px] uppercase font-bold text-walnut-400">Current</span>
+                        <span id="header-price" class="font-mono text-base font-bold text-walnut-900">--</span>
+                    </div>
+                    <div class="h-3 w-px bg-sandBorder"></div>
+                    <span id="header-change" class="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-sage-50 text-sage-700">
+                        --
+                    </span>
+                </div>
 
-            <!-- Compare Plus Button -->
-            <button class="p-1 rounded hover:bg-[#f0f3fa] text-slate-500 hover:text-slate-900" title="Compare or Add Symbol">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            </button>
+                <!-- Interval Switcher (5m vs 1D) -->
+                <div class="flex items-center p-1 rounded-xl bg-sandMuted border border-sandBorder text-xs font-semibold">
+                    <button id="btn-interval-5m" class="px-3 py-1.5 rounded-lg bg-walnut-600 text-white shadow-xs transition-all font-medium flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-sage-300 animate-pulse"></span>
+                        <span>5-Min Intraday</span>
+                    </button>
+                    <button id="btn-interval-1d" class="px-3 py-1.5 rounded-lg text-walnut-600 hover:text-walnut-900 transition-all font-medium">
+                        Daily
+                    </button>
+                </div>
 
-            <div class="h-4 w-px bg-slate-200 mx-1"></div>
-
-            <!-- Timeframe Pills -->
-            <div class="flex items-center gap-0.5">
-                <button id="pill-5m" class="px-2 py-1 rounded font-bold text-[#2962ff] hover:bg-[#f0f3fa] transition">5m</button>
-                <button id="pill-15m" class="px-2 py-1 rounded text-slate-600 hover:bg-[#f0f3fa] transition">15m</button>
-                <button id="pill-1h" class="px-2 py-1 rounded text-slate-600 hover:bg-[#f0f3fa] transition">1H</button>
-                <button id="pill-1d" class="px-2 py-1 rounded text-slate-600 hover:bg-[#f0f3fa] transition">D</button>
-            </div>
-
-            <div class="h-4 w-px bg-slate-200 mx-1"></div>
-
-            <!-- Candlestick Type -->
-            <button id="btn-toggle-candle" class="p-1.5 rounded hover:bg-[#f0f3fa] text-slate-700 font-semibold flex items-center gap-1" title="Bar style">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#089981]"></i>
-            </button>
-
-            <!-- Indicators Button (fx) -->
-            <button class="flex items-center gap-1 px-2.5 py-1 rounded hover:bg-[#f0f3fa] text-slate-700 font-medium">
-                <i data-lucide="function-square" class="w-3.5 h-3.5 text-[#2962ff]"></i>
-                <span>Indicators</span>
-            </button>
-
-            <!-- Alert Button -->
-            <button class="hidden md:flex items-center gap-1 px-2 py-1 rounded hover:bg-[#f0f3fa] text-slate-700">
-                <i data-lucide="bell" class="w-3.5 h-3.5"></i>
-                <span>Alert</span>
-            </button>
-
-            <!-- Replay Button -->
-            <button class="hidden md:flex items-center gap-1 px-2 py-1 rounded hover:bg-[#f0f3fa] text-slate-700">
-                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                <span>Replay</span>
-            </button>
-
-            <div class="h-4 w-px bg-slate-200 mx-1"></div>
-
-            <!-- Mode Switcher: AI TradingView vs Official Embed -->
-            <div class="flex items-center bg-[#f0f3fa] p-0.5 rounded-lg border border-slate-200 text-[11px] font-semibold">
-                <button id="tab-mode-ai" class="px-2.5 py-1 rounded-md bg-white text-[#2962ff] shadow-sm font-bold flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>TradingView + AI Forecast</span>
+                <!-- Refresh Button -->
+                <button id="btn-refresh" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sandMuted text-walnut-800 border border-sandBorder text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                    <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-amberGlow-500" id="refresh-icon"></i>
+                    <span>Refresh</span>
                 </button>
-                <button id="tab-mode-tv" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
-                    <span>Official Live Widget</span>
+
+                <!-- Export CSV Button -->
+                <button id="btn-export-csv" class="px-3 py-1.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                    <span>Export Data</span>
                 </button>
             </div>
-        </div>
-
-        <!-- Right: Actions -->
-        <div class="flex items-center gap-2">
-            <!-- Refresh Live Data -->
-            <button id="btn-refresh" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#2962ff] hover:bg-blue-700 text-white font-semibold transition text-xs shadow-sm">
-                <i data-lucide="refresh-cw" class="w-3 h-3" id="refresh-icon"></i>
-                <span>Refresh Live NSE</span>
-            </button>
-
-            <!-- Screenshot Camera -->
-            <button id="btn-screenshot" class="p-1.5 rounded hover:bg-[#f0f3fa] text-slate-600" title="Take a screenshot">
-                <i data-lucide="camera" class="w-4 h-4"></i>
-            </button>
-
-            <!-- Dark / Light Theme Toggle -->
-            <button id="btn-theme-toggle" class="p-1.5 rounded hover:bg-[#f0f3fa] text-slate-600" title="Toggle Theme">
-                <i data-lucide="moon" class="w-4 h-4" id="theme-icon"></i>
-            </button>
         </div>
     </header>
 
-    <!-- Main Workspace (Left Tools + Chart Center + Right Sidebar) -->
-    <div class="flex-1 flex overflow-hidden relative">
+    <!-- Main Container Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-        <!-- Left TradingView Drawing Tools Bar -->
-        <aside class="w-[46px] bg-white border-r border-[#e0e3eb] flex flex-col items-center py-2 gap-3 text-slate-500 shrink-0 z-30">
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Crosshair"><i data-lucide="crosshair" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Trendline"><i data-lucide="trending-up" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Gann and Fibonacci"><i data-lucide="sliders" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Geometric Shapes"><i data-lucide="square" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Text Annotation"><i data-lucide="type" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Patterns"><i data-lucide="activity" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Prediction and Measurement"><i data-lucide="target" class="w-4 h-4 text-[#2962ff]"></i></button>
-            <div class="w-6 h-px bg-slate-200"></div>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Magnet Mode"><i data-lucide="zap" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition" title="Lock All Drawing Tools"><i data-lucide="lock" class="w-4 h-4"></i></button>
-            <button class="p-2 rounded hover:bg-[#f0f3fa] hover:text-[#2962ff] transition mt-auto" title="Remove Drawings"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-        </aside>
-
-        <!-- Center Chart Container Area -->
-        <main class="flex-1 flex flex-col bg-white overflow-hidden relative">
-
-            <!-- Chart Header Sub-Bar: OHLC and Live Quote Info -->
-            <div class="h-[32px] px-4 flex items-center justify-between text-xs text-slate-700 border-b border-[#f0f3fa] bg-white shrink-0 z-20">
-                <div class="flex items-center gap-3 font-mono">
-                    <span class="font-bold text-[#131722] flex items-center gap-1.5 font-sans">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        Nifty 50 Index • <span id="label-interval-text">5m</span> • NSE
-                    </span>
-                    <span class="text-slate-500 text-[11px]">
-                        O: <b id="bar-open" class="text-slate-800">--</b>
-                        H: <b id="bar-high" class="text-[#089981]">--</b>
-                        L: <b id="bar-low" class="text-[#f23645]">--</b>
-                        C: <b id="bar-close" class="text-slate-800">--</b>
-                    </span>
-                    <span id="bar-change" class="text-xs font-bold text-[#089981]">--</span>
-                    <span class="text-slate-400 text-[11px] hidden lg:inline">Vol: <b id="bar-vol" class="text-slate-600">--</b></span>
+        <!-- Top Section: 6 High-Low AI Prediction Cards (Spaces that feel alive aesthetic) -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="font-serif text-xl sm:text-2xl font-bold text-walnut-900 flex items-center gap-2">
+                        <span>Projected Horizon</span>
+                        <span class="font-sans text-xs font-medium text-walnut-400">/ Next 6 Candles High & Low Bounds</span>
+                    </h2>
                 </div>
-
-                <!-- Overlays Toggles -->
-                <div class="flex items-center gap-3 text-xs">
-                    <label class="flex items-center gap-1 cursor-pointer">
-                        <input type="checkbox" id="chk-sma" checked class="rounded text-[#2962ff] focus:ring-0">
-                        <span class="text-amber-600 font-semibold text-[11px]">SMA 20</span>
-                    </label>
-                    <label class="flex items-center gap-1 cursor-pointer">
-                        <input type="checkbox" id="chk-envelope" checked class="rounded text-[#2962ff] focus:ring-0">
-                        <span class="text-[#089981] font-semibold text-[11px]">AI High-Low Envelope</span>
-                    </label>
+                <div class="flex items-center gap-2 text-xs font-medium text-walnut-600">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sage-500"></span> Pred High</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amberGlow-500"></span> Expected Close</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-terracotta"></span> Pred Low</span>
                 </div>
             </div>
 
-            <!-- Active Chart Canvas Mount -->
-            <div class="flex-1 relative w-full h-full">
-                <!-- Floating TradingView Buy/Sell Pill Widget (Matching Screenshot) -->
-                <div class="absolute top-2 left-3 z-20 flex items-center bg-white/95 dark:bg-[#1e222d]/95 backdrop-blur-sm border border-[#e0e3eb] dark:border-[#2a2e39] rounded-md shadow-xs p-1 text-[11px] gap-1 font-mono pointer-events-none">
-                    <div class="bg-red-50 dark:bg-red-950/40 text-[#f23645] px-2 py-0.5 rounded font-bold border border-red-200/60 dark:border-red-800/40 text-[10px] flex items-center gap-1">
-                        <span id="badge-sell-price">22,957.15</span> <span class="text-[8px] font-semibold text-slate-400">SELL</span>
-                    </div>
-                    <span class="text-slate-400 text-[9px] px-0.5">0.00</span>
-                    <div class="bg-blue-50 dark:bg-blue-950/40 text-[#2962ff] px-2 py-0.5 rounded font-bold border border-blue-200/60 dark:border-blue-800/40 text-[10px] flex items-center gap-1">
-                        <span id="badge-buy-price">22,957.15</span> <span class="text-[8px] font-semibold text-slate-400">BUY</span>
-                    </div>
-                </div>
-
-                <!-- TradingView Lightweight Charts Container -->
-                <div id="tv-chart-container" class="w-full h-full"></div>
-
-                <!-- Official TradingView Widget Container (Hidden by default) -->
-                <div id="tv-official-container" class="w-full h-full hidden">
-                    <div id="tradingview_widget_mount" class="w-full h-full"></div>
-                </div>
-
-                <!-- Loading Overlay -->
-                <div id="tv-loader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-30 transition-opacity">
-                    <div class="w-9 h-9 border-4 border-[#2962ff] border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-xs font-semibold text-slate-700">Loading NIFTY-50 Market Data & Neural Predictions...</p>
-                </div>
+            <!-- 6 Cards Grid -->
+            <div id="forecast-cards-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                <!-- Dynamically generated by app.js -->
+                <div class="col-span-full py-8 text-center text-xs text-walnut-400">Loading AI projections...</div>
             </div>
+        </section>
 
-            <!-- Bottom TradingView Timeframe & Time Bar -->
-            <div class="h-[34px] border-t border-[#e0e3eb] bg-white px-3 flex items-center justify-between text-xs text-slate-600 shrink-0 z-20">
-                <!-- Left: Timeframe Range Buttons -->
-                <div class="flex items-center gap-1 font-medium text-[11px]">
-                    <span class="font-bold text-[#131722] text-xs mr-2 flex items-center gap-1">
-                        <svg class="w-4 h-4 text-[#131722]" viewBox="0 0 28 28" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M19.5 7H24V9H19.5V7ZM24 11.5H19.5V13.5H24V11.5ZM19.5 16H24V18H19.5V16ZM24 20.5H19.5V22.5H24V20.5ZM15 7H17V22.5H15V7ZM12.5 7H8V9H12.5V7ZM8 11.5H12.5V13.5H8V11.5ZM12.5 16H8V18H12.5V16ZM8 20.5H12.5V22.5H8V20.5ZM3.5 7H5.5V22.5H3.5V7Z" fill="currentColor"/></svg>
-                        TradingView
-                    </span>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="1D">1D</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="5D">5D</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="1M">1M</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa] active bg-[#f0f3fa] text-[#2962ff] font-bold" data-range="3M">3M</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="6M">6M</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="YTD">YTD</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="1Y">1Y</button>
-                    <button class="btn-range px-1.5 py-0.5 rounded hover:bg-[#f0f3fa]" data-range="ALL">All</button>
-                </div>
-
-                <!-- Right: Exact Live Time Clock UTC+05:30 -->
-                <div class="flex items-center gap-2 font-mono text-[11px] text-slate-700">
-                    <span id="tv-clock" class="font-bold">09:31:22 UTC+05:30</span>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Right TradingView Watchlist & AI Forecast Sidebar (Exactly like Screenshot) -->
-        <aside class="w-[330px] lg:w-[360px] bg-white border-l border-[#e0e3eb] flex flex-col shrink-0 z-30 overflow-y-auto">
+        <!-- Center Section: Interactive Organic Chart -->
+        <section class="bg-white rounded-2xl border border-sandBorder shadow-sm overflow-hidden flex flex-col">
             
-            <!-- Watchlist Header -->
-            <div class="p-3 border-b border-[#e0e3eb] flex items-center justify-between">
-                <span class="font-bold text-xs text-[#131722] uppercase tracking-wider flex items-center gap-1.5">
-                    <i data-lucide="list" class="w-3.5 h-3.5 text-slate-600"></i>
-                    Watchlist (Daftar Pantau)
-                </span>
-                <div class="flex items-center gap-1">
-                    <button class="p-1 hover:bg-[#f0f3fa] rounded text-slate-500"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
-                    <button class="p-1 hover:bg-[#f0f3fa] rounded text-slate-500"><i data-lucide="more-horizontal" class="w-3.5 h-3.5"></i></button>
+            <!-- Chart Sub-Header Controls -->
+            <div class="px-5 py-3.5 border-b border-sandBorder flex flex-wrap items-center justify-between gap-3 bg-white">
+                <div class="flex items-center gap-3">
+                    <span class="font-serif text-lg font-bold text-walnut-900">Unified Chart</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-sandMuted text-walnut-600 font-medium" id="chart-interval-badge">5-Minute Candles</span>
+                    <div class="hidden sm:flex items-center gap-3 font-mono text-xs text-walnut-400">
+                        <span>O: <b id="ohlc-open" class="text-walnut-800">--</b></span>
+                        <span>H: <b id="ohlc-high" class="text-sage-600">--</b></span>
+                        <span>L: <b id="ohlc-low" class="text-terracotta">--</b></span>
+                        <span>C: <b id="ohlc-close" class="text-walnut-800">--</b></span>
+                    </div>
+                </div>
+
+                <!-- Overlays & Range Toggles -->
+                <div class="flex items-center gap-3 text-xs">
+                    <label class="flex items-center gap-1.5 cursor-pointer text-walnut-600 font-medium">
+                        <input type="checkbox" id="chk-sma" checked class="rounded text-amberGlow-500 focus:ring-0 accent-amberGlow-500">
+                        <span>SMA 20</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-walnut-600 font-medium">
+                        <input type="checkbox" id="chk-forecast-envelope" checked class="rounded text-sage-500 focus:ring-0 accent-sage-500">
+                        <span>AI Boundary Channel</span>
+                    </label>
+                    <div class="h-4 w-px bg-sandBorder"></div>
+                    <!-- Timeframe buttons -->
+                    <div class="flex items-center gap-1 font-medium text-xs text-walnut-600" id="timeframe-buttons">
+                        <button class="btn-range px-2 py-1 rounded-md hover:bg-sandMuted" data-bars="75">1D</button>
+                        <button class="btn-range px-2 py-1 rounded-md hover:bg-sandMuted active bg-sandMuted text-walnut-900 font-bold" data-bars="150">2D</button>
+                        <button class="btn-range px-2 py-1 rounded-md hover:bg-sandMuted" data-bars="300">4D</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Watchlist Table (Matching Screenshot) -->
-            <div class="border-b border-[#e0e3eb] bg-white">
-                <table class="w-full text-xs">
-                    <thead>
-                        <tr class="text-[10px] text-slate-400 uppercase border-b border-slate-100">
-                            <th class="py-1.5 px-3 text-left">Symbol</th>
-                            <th class="py-1.5 px-2 text-right">Last</th>
-                            <th class="py-1.5 px-2 text-right">Chg</th>
-                            <th class="py-1.5 px-3 text-right">Chg%</th>
-                        </tr>
-                    </thead>
-                    <tbody id="watchlist-body" class="divide-y divide-slate-50 font-['JetBrains_Mono']">
-                        <!-- Injected by app.js -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Chart Canvas Container -->
+            <div class="relative w-full h-[480px] sm:h-[540px] bg-sand">
+                <div id="chart-container" class="w-full h-full"></div>
 
-            <!-- Big Quote Card (Matching Screenshot Bottom Right) -->
-            <div class="p-4 border-b border-[#e0e3eb] bg-white">
-                <div class="text-[11px] text-slate-500 font-medium">Nifty 50 Index • NSE</div>
-                <div class="flex items-baseline gap-2 mt-0.5">
-                    <span id="side-last-price" class="text-2xl font-bold font-['JetBrains_Mono'] text-[#131722]">22,957.15</span>
-                    <span class="text-xs text-slate-400 uppercase font-semibold">POINT</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs font-bold mt-1">
-                    <span id="side-change" class="text-[#089981]">+20.40 +0.09%</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="text-slate-500 font-medium flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Market open
-                    </span>
-                </div>
-
-                <!-- Volume Bar -->
-                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Volume: <b id="side-vol" class="text-slate-800 font-mono">8.27 M</b></span>
-                    <span>Avg: <b class="text-slate-800 font-mono">323.12 M</b></span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-1 overflow-hidden">
-                    <div class="bg-[#089981] h-1.5 rounded-full w-[35%]"></div>
+                <!-- Chart Loading Spinner -->
+                <div id="chart-loader" class="absolute inset-0 bg-sand/80 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-20 transition-opacity">
+                    <div class="w-7 h-7 border-3 border-walnut-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-serif text-walnut-600 italic">Synthesizing market patterns & projections...</span>
                 </div>
             </div>
 
-            <!-- AI Deep Learning Predictions Section (Next 5-6 High & Lows) -->
-            <div class="p-3 flex-1 flex flex-col">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="font-bold text-xs text-[#131722] flex items-center gap-1.5">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#2962ff]"></i>
-                        AI Predicted Next 6 High/Lows
-                    </span>
-                    <span class="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                        LSTM Engine
-                    </span>
+            <!-- Chart Footer Meta -->
+            <div class="px-5 py-2.5 border-t border-sandBorder bg-sandMuted/60 flex flex-wrap items-center justify-between text-[11px] text-walnut-600">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-sage-500"></span>
+                    <span>Live Market Feed: <b>National Stock Exchange (NSE India)</b></span>
                 </div>
-                <p class="text-[10px] text-slate-500 mb-2">Multi-horizon boundary predictions derived from the PyTorch model:</p>
-
-                <!-- Cards List -->
-                <div id="side-forecast-list" class="space-y-2 flex-1 overflow-y-auto pr-1">
-                    <!-- Injected by app.js -->
+                <div class="flex items-center gap-4">
+                    <span>Model: <b class="font-mono text-walnut-800">Stacked Relative-Offset LSTM</b></span>
+                    <span id="clock-display" class="font-mono text-walnut-600">--</span>
                 </div>
+            </div>
+        </section>
 
-                <!-- Retrain / Accuracy Footer -->
-                <div class="mt-3 pt-3 border-t border-[#e0e3eb] flex items-center justify-between text-[10px] text-slate-500">
-                    <span>High MAPE: <b class="text-[#089981]">0.05%</b></span>
-                    <span>R²: <b class="text-[#2962ff]">0.9588</b></span>
-                    <button id="btn-side-retrain" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded transition text-[10px]">
-                        Retrain Model
-                    </button>
+        <!-- Bottom Section: Summary & Technical Diagnostics -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Card 1: Key Statistics -->
+            <div class="bg-white rounded-2xl p-5 border border-sandBorder shadow-sm space-y-3">
+                <div class="flex items-center justify-between border-b border-sandBorder pb-2">
+                    <h3 class="font-serif text-lg font-bold text-walnut-900">Forecast Range Analysis</h3>
+                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-amberGlow-500"></i>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-sand/60">
+                        <span class="text-walnut-400">Peak Predicted High</span>
+                        <b id="stat-max-high" class="font-mono text-sage-600 text-sm">--</b>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-sand/60">
+                        <span class="text-walnut-400">Lowest Predicted Low</span>
+                        <b id="stat-min-low" class="font-mono text-terracotta text-sm">--</b>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-sand/60">
+                        <span class="text-walnut-400">Average Expected Spread</span>
+                        <b id="stat-avg-spread" class="font-mono text-walnut-800 text-sm">--</b>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-walnut-400">Net Directional Bias</span>
+                        <b id="stat-net-bias" class="font-semibold text-walnut-800">--</b>
+                    </div>
                 </div>
             </div>
 
-        </aside>
+            <!-- Card 2: Model Performance Metrics -->
+            <div class="bg-white rounded-2xl p-5 border border-sandBorder shadow-sm space-y-3">
+                <div class="flex items-center justify-between border-b border-sandBorder pb-2">
+                    <h3 class="font-serif text-lg font-bold text-walnut-900">Neural Network Fidelity</h3>
+                    <i data-lucide="cpu" class="w-4 h-4 text-sage-600"></i>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-sand/60">
+                        <span class="text-walnut-400">High Prediction MAPE</span>
+                        <b id="stat-mape" class="font-mono text-sage-600 font-bold">0.05%</b>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-sand/60">
+                        <span class="text-walnut-400">R² Coefficient of Determination</span>
+                        <b id="stat-r2" class="font-mono text-walnut-800 font-bold">0.9588</b>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-sand/60">
+                        <span class="text-walnut-400">Training Samples (Expanded)</span>
+                        <b class="font-mono text-walnut-800">4,496 Candles</b>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-walnut-400">Representation Architecture</span>
+                        <b class="text-walnut-800">Relative Offset Window</b>
+                    </div>
+                </div>
+            </div>
 
-    </div>
+            <!-- Card 3: Academic / Project Details (Exp 13) -->
+            <div class="bg-white rounded-2xl p-5 border border-sandBorder shadow-sm space-y-3">
+                <div class="flex items-center justify-between border-b border-sandBorder pb-2">
+                    <h3 class="font-serif text-lg font-bold text-walnut-900">Academic Project (CO4)</h3>
+                    <i data-lucide="book-open" class="w-4 h-4 text-walnut-600"></i>
+                </div>
+                <p class="text-xs text-walnut-600 leading-relaxed">
+                    <b>Experiment 13:</b> Time Series Forecasting for the NIFTY-50 Dataset. Uses a multi-layer stacked LSTM neural network with Huber loss optimization and lookback sequence buffers.
+                </p>
+                <div class="pt-2 flex items-center justify-between text-[11px] text-walnut-400 border-t border-sandBorder">
+                    <span>Model File: <code class="bg-sandMuted px-1.5 py-0.5 rounded text-walnut-700">models/nifty50_lstm_5m.pth</code></span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="mt-auto border-t border-sandBorder bg-sandMuted/40 py-4 px-6 text-center text-xs text-walnut-400">
+        <p>NIFTY-50 Intelligent Deep Learning Forecaster • Curated Natural Aesthetics (Sage Green, Walnut Brown, Amber Glow) • Experiment 13</p>
+    </footer>
 
     <!-- Scripts -->
     <script src="/static/app.js"></script>

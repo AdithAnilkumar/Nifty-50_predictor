@@ -24,21 +24,30 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling (Clean, simple, robust)
+# Custom Styling: Natural Organic Theme (Sage Green, Walnut Brown, Amber Glow)
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    .stApp {
+        background-color: #FAF7F2;
+        color: #2C221B;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
     .main-header-box {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        padding: 20px 24px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(135deg, #5A3E2B 0%, #3D291C 100%);
+        padding: 22px 28px;
+        border-radius: 14px;
+        border: 1px solid #E6DFD5;
         margin-bottom: 20px;
+        color: #FAF7F2;
     }
     .metric-summary-box {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
+        background: #FFFFFF;
+        border: 1px solid #E6DFD5;
+        border-radius: 12px;
         padding: 14px 18px;
+        box-shadow: 0 4px 16px -2px rgba(90, 62, 43, 0.05);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -286,7 +295,7 @@ with tab2:
     
     fig = go.Figure()
     
-    # 1. Historical Candles
+    # 1. Historical Candles (Organic Colors: Sage Green & Terracotta)
     fig.add_trace(go.Candlestick(
         x=[idx.strftime('%Y-%m-%d %H:%M') if interval_choice == '5m' else idx.strftime('%Y-%m-%d') for idx in plot_df.index],
         open=plot_df['Open'],
@@ -294,17 +303,17 @@ with tab2:
         low=plot_df['Low'],
         close=plot_df['Close'],
         name="Historical Candles",
-        increasing_line_color='#22c55e',
-        decreasing_line_color='#ef4444'
+        increasing_line_color='#87A96B',
+        decreasing_line_color='#C0583A'
     ))
     
-    # 2. Moving Average Overlay
+    # 2. Moving Average Overlay (Walnut Brown)
     if "SMA 20" in show_indicators:
         fig.add_trace(go.Scatter(
             x=[idx.strftime('%Y-%m-%d %H:%M') if interval_choice == '5m' else idx.strftime('%Y-%m-%d') for idx in plot_df.index],
             y=plot_df['Close'].rolling(20).mean(),
             name="SMA 20",
-            line=dict(color='#f59e0b', width=1.5)
+            line=dict(color='#5A3E2B', width=1.5)
         ))
         
     # 3. Forecast High-Low Channel
@@ -320,22 +329,22 @@ with tab2:
         fig.add_trace(go.Scatter(
             x=bridge_x, y=bridge_high,
             name="Predicted High Channel",
-            line=dict(color='#4ade80', width=2.5, dash='dash')
+            line=dict(color='#87A96B', width=2.5, dash='dash')
         ))
         fig.add_trace(go.Scatter(
             x=bridge_x, y=bridge_low,
             name="Predicted Low Channel",
             fill='tonexty',
-            fillcolor='rgba(56, 189, 248, 0.15)',
-            line=dict(color='#38bdf8', width=2.5, dash='dash')
+            fillcolor='rgba(213, 133, 31, 0.12)',
+            line=dict(color='#C0583A', width=2.5, dash='dash')
         ))
         
     fig.add_trace(go.Scatter(
         x=bridge_x, y=bridge_close,
         name="Predicted Close",
         mode='lines+markers',
-        marker=dict(size=6, color='#fbbf24'),
-        line=dict(color='#fbbf24', width=2, dash='dot')
+        marker=dict(size=7, color='#D5851F'),
+        line=dict(color='#D5851F', width=2, dash='dot')
     ))
     
     # 4. Vertical Demarcation Line
@@ -343,10 +352,37 @@ with tab2:
         x=last_idx_str,
         line_width=1.8,
         line_dash="dashdot",
-        line_color="#e2e8f0",
+        line_color="#5A3E2B",
         annotation_text="⚡ CURRENT TIME | NEXT 5-MIN CANDLES ➔" if interval_choice == '5m' else "⚡ TODAY | FUTURE FORECAST ➔",
         annotation_position="top left",
-        annotation_font_color="#38bdf8"
+        annotation_font_color="#D5851F"
+    )
+    
+    fig.update_layout(
+        height=540,
+        margin=dict(l=10, r=10, t=20, b=10),
+        plot_bgcolor='#FAF7F2',
+        paper_bgcolor='#FFFFFF',
+        font=dict(color='#5A3E2B', family="Plus Jakarta Sans"),
+        xaxis=dict(
+            rangeslider=dict(visible=False),
+            gridcolor='#EFE8DD',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title="NIFTY-50 Index (₹)",
+            gridcolor='#EFE8DD',
+            showgrid=True,
+            side="right"
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0.01,
+            bgcolor='rgba(255,255,255,0.85)'
+        )
     )
     
     fig.update_layout(

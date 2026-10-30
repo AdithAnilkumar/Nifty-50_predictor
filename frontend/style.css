@@ -1,121 +1,85 @@
-/* TradingView Style Sheet for NIFTY-50 AI Forecaster */
-
-@import url('https://fonts.googleapis.com/css2?family=Trebuchet+MS&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+/* Editorial Luxury Organic Theme: Sage Green, Walnut Brown, Amber Glow */
 
 :root {
-    --tv-bg: #ffffff;
-    --tv-header-bg: #ffffff;
-    --tv-sidebar-bg: #ffffff;
-    --tv-border: #e0e3eb;
-    --tv-text: #131722;
-    --tv-text-sub: #787b86;
-    --tv-green: #089981;
-    --tv-red: #f23645;
-    --tv-blue: #2962ff;
-    --tv-hover: #f0f3fa;
-}
-
-.dark {
-    --tv-bg: #131722;
-    --tv-header-bg: #1e222d;
-    --tv-sidebar-bg: #1e222d;
-    --tv-border: #2a2e39;
-    --tv-text: #d1d4dc;
-    --tv-text-sub: #787b86;
-    --tv-hover: #2a2e39;
+    --color-sage: #87A96B;
+    --color-sage-deep: #55723E;
+    --color-walnut: #5A3E2B;
+    --color-walnut-dark: #2C221B;
+    --color-amber: #D5851F;
+    --color-terracotta: #C0583A;
+    --color-sand: #FAF7F2;
+    --color-sand-muted: #F2EDE4;
+    --color-border: #E6DFD5;
 }
 
 body {
-    background-color: var(--tv-bg);
-    color: var(--tv-text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif;
-    user-select: none;
-    -webkit-font-smoothing: antialiased;
+    background-color: var(--color-sand);
+    color: var(--color-walnut-dark);
 }
 
-/* TradingView Button Styles */
-.tv-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--tv-text);
-    transition: background-color 0.15s ease, color 0.15s ease;
+/* Editorial Serif Headings */
+h1, h2, h3, .font-editorial {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: -0.015em;
 }
 
-.tv-btn:hover {
-    background-color: var(--tv-hover);
-}
-
-.tv-btn.active {
-    background-color: var(--tv-hover);
-    color: var(--tv-blue);
-    font-weight: 700;
-}
-
-/* Custom Scrollbars */
+/* Subtle, refined scrollbars */
 ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--color-sand);
 }
 ::-webkit-scrollbar-thumb {
-    background: #c1c5cd;
-    border-radius: 3px;
-}
-.dark ::-webkit-scrollbar-thumb {
-    background: #363a45;
+    background: #D8CEBE;
+    border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #a0a4ae;
+    background: #BEB19F;
 }
 
-/* Watchlist row hover */
-.watchlist-row {
-    transition: background-color 0.1s ease;
-    cursor: pointer;
-}
-.watchlist-row:hover {
-    background-color: var(--tv-hover);
-}
-
-/* Forecast Card */
-.forecast-card {
-    background-color: #ffffff;
-    border: 1px solid var(--tv-border);
-    border-radius: 6px;
-    padding: 10px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.dark .forecast-card {
-    background-color: #1a1e29;
-    border-color: #2a2e39;
-}
-.forecast-card:hover {
-    border-color: var(--tv-blue);
-    box-shadow: 0 2px 8px rgba(41, 98, 255, 0.08);
+/* Luxury Prediction Cards */
+.prediction-card {
+    background: #FFFFFF;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 4px 18px -2px rgba(90, 62, 43, 0.05);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-/* Badges */
+.prediction-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-amber);
+    box-shadow: 0 8px 24px -4px rgba(213, 133, 31, 0.12);
+}
+
+/* Trend Badges */
 .badge-bullish {
-    background-color: rgba(8, 153, 129, 0.1);
-    color: #089981;
-    border: 1px solid rgba(8, 153, 129, 0.25);
+    background-color: rgba(135, 169, 107, 0.15);
+    color: #4C6A34;
+    border: 1px solid rgba(135, 169, 107, 0.35);
 }
 
 .badge-bearish {
-    background-color: rgba(242, 54, 69, 0.1);
-    color: #f23645;
-    border: 1px solid rgba(242, 54, 69, 0.25);
+    background-color: rgba(192, 88, 58, 0.12);
+    color: #A0452C;
+    border: 1px solid rgba(192, 88, 58, 0.3);
 }
 
 .badge-neutral {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    background-color: rgba(213, 133, 31, 0.12);
+    color: #9A5A0A;
+    border: 1px solid rgba(213, 133, 31, 0.3);
+}
+
+/* Range buttons */
+.btn-range.active {
+    background-color: var(--color-sand-muted);
+    color: var(--color-walnut-dark);
+    font-weight: 700;
 }
