@@ -21,9 +21,10 @@ def fetch_nifty_data(
     force_refresh: bool = False
 ) -> pd.DataFrame:
     """
-    Fetches historical NIFTY-50 data from Yahoo Finance (^NSEI).
-    - For '5m': Fetches the maximum available 60-day intraday dataset (~4,500 candles).
-    - For '1d': Fetches over 20 years of historical daily records (from 2005 to 2026, ~5,000+ days).
+    Fetches real-time NIFTY-50 data from Yahoo Finance (^NSEI).
+    - For '5m': Fetches the latest up-to-the-minute 60-day intraday dataset (~4,500 candles).
+    - For '1d': Fetches over 20 years of historical daily records (from 2005 to 2026).
+    Checks cache freshness so intraday data is never stale or delayed.
     """
     if cache_path is None:
         cache_path = f'data/nifty50_{interval}_large.csv'
@@ -31,12 +32,19 @@ def fetch_nifty_data(
     if not force_refresh and os.path.exists(cache_path):
         try:
             df = pd.read_csv(cache_path, index_col=0, parse_dates=True)
-            if len(df) > 1000:
-                return df
+            if len(df) > 100:
+                last_dt = df.index[-1]
+                now = pd.Timestamp.now(tz=last_dt.tz) if hasattr(last_dt, 'tz') and last_dt.tz is not None else pd.Timestamp.now()
+                age_minutes = (now - last_dt).total_seconds() / 60.0
+                
+                # For 5m intraday, only reuse cache if last candle is less than 5 minutes old
+                max_cache_age = 5.0 if interval == '5m' else 120.0
+                if age_minutes <= max_cache_age:
+                    return df
         except Exception:
             pass
 
-    print(f"Downloading NIFTY-50 (^NSEI) large dataset (interval='{interval}', period='{period}')...")
+    print(f"Downloading latest live NIFTY-50 (^NSEI) data from Yahoo Finance (interval='{interval}')...")
     if interval == '5m':
         df = yf.download('^NSEI', interval='5m', period='60d', progress=False)
     else:
