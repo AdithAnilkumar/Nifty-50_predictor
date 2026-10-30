@@ -1,558 +1,666 @@
 /**
- * NIFTY-50 AI Forecaster Frontend Application
- * Supports 5-Minute Intraday and Daily Unified Charts with Real-Time Timestamps.
+ * NIFTY 50 TradingView Engine with Deep Learning Neural Forecasts
+ * Native Lightweight Charts v4.2.0 + Watchlist + Multi-Horizon AI Projections
  */
 
-let appState = {
+// Application State
+const state = {
     interval: '5m',
-    bars: 75, // 75 5-min candles = 1 full trading day of 6.25 hrs (09:15 to 15:30)
+    bars: 120,
     horizon: 6,
-    chartType: 'candlestick',
-    showSMA: true,
-    showChannel: true,
-    chartData: null
+    theme: 'light',
+    activeTab: 'ai', // 'ai' or 'tv'
+    chartData: null,
+    officialWidgetInitialized: false,
+    overlays: {
+        sma: true,
+        envelope: true
+    }
 };
 
+// Global Chart References
+let tvChart = null;
+let candleSeries = null;
+let volumeSeries = null;
+let smaSeries = null;
+let forecastCandleSeries = null;
+let forecastHighLine = null;
+let forecastLowLine = null;
+let forecastCloseLine = null;
+
 // DOM Elements
-const chartLoader = document.getElementById('chart-loader');
+const container = document.getElementById('tv-chart-container');
+const loader = document.getElementById('tv-loader');
+const officialContainer = document.getElementById('tv-official-container');
+const tabAi = document.getElementById('tab-mode-ai');
+const tabTv = document.getElementById('tab-mode-tv');
 const btnRefresh = document.getElementById('btn-refresh');
 const refreshIcon = document.getElementById('refresh-icon');
-const selectHorizon = document.getElementById('select-horizon');
-const btnCandle = document.getElementById('btn-chart-candle');
-const btnLine = document.getElementById('btn-chart-line');
-const toggleSMA = document.getElementById('toggle-sma');
-const toggleChannel = document.getElementById('toggle-channel');
-const btnDownloadCSV = document.getElementById('btn-download-csv');
-const btnRetrain = document.getElementById('btn-retrain');
-const btnInterval5m = document.getElementById('btn-interval-5m');
-const btnInterval1d = document.getElementById('btn-interval-1d');
-const badgeInterval = document.getElementById('badge-interval');
-const timeframeContainer = document.getElementById('timeframe-container');
-const labelActiveTimeframe = document.getElementById('label-active-timeframe');
-const labelActiveIntervalBox = document.getElementById('label-active-interval-box');
-const clockEl = document.getElementById('current-clock');
+const btnThemeToggle = document.getElementById('btn-theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+const clockEl = document.getElementById('tv-clock');
 
-// Initialize
+// Interval Pills
+const pill5m = document.getElementById('pill-5m');
+const pill15m = document.getElementById('pill-15m');
+const pill1h = document.getElementById('pill-1h');
+const pill1d = document.getElementById('pill-1d');
+const labelIntervalText = document.getElementById('label-interval-text');
+
+// Header OHLC Elements
+const barOpen = document.getElementById('bar-open');
+const barHigh = document.getElementById('bar-high');
+const barLow = document.getElementById('bar-low');
+const barClose = document.getElementById('bar-close');
+const barChange = document.getElementById('bar-change');
+const barVol = document.getElementById('bar-vol');
+
+// Checkbox Overlays
+const chkSma = document.getElementById('chk-sma');
+const chkEnvelope = document.getElementById('chk-envelope');
+
+// Sidebar Elements
+const watchlistBody = document.getElementById('watchlist-body');
+const sideLastPrice = document.getElementById('side-last-price');
+const sideChange = document.getElementById('side-change');
+const sideVol = document.getElementById('side-vol');
+const sideForecastList = document.getElementById('side-forecast-list');
+const btnSideRetrain = document.getElementById('btn-side-retrain');
+
+// Formatters
+const numFormat = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatPrice = (val) => val != null ? numFormat.format(val) : '--';
+const formatCompactVol = (val) => {
+    if (!val) return '0';
+    if (val >= 1e7) return (val / 1e7).toFixed(2) + ' Cr';
+    if (val >= 1e6) return (val / 1e6).toFixed(2) + ' M';
+    if (val >= 1e5) return (val / 1e5).toFixed(2) + ' L';
+    if (val >= 1e3) return (val / 1e3).toFixed(1) + ' K';
+    return val.toString();
+};
+
+// Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
-    updateClock();
-    setInterval(updateClock, 1000);
-    renderTimeframeButtons();
-    setupEventListeners();
-    fetchChartData(false);
+    initClock();
+    initTradingViewChart();
+    setupEventHandlers();
+    loadMarketAndChartData(false);
 });
 
-function updateClock() {
-    const now = new Date();
-    if (clockEl) {
-        clockEl.textContent = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
-                              ' ' + now.toLocaleTimeString('en-US', { hour12: false }) + ' IST';
+// Live TradingView Clock
+function initClock() {
+    function tick() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+        if (clockEl) {
+            clockEl.textContent = `${timeStr} UTC+05:30`;
+        }
     }
+    tick();
+    setInterval(tick, 1000);
 }
 
-function renderTimeframeButtons() {
-    if (!timeframeContainer) return;
-    if (appState.interval === '5m') {
-        timeframeContainer.innerHTML = `
-            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="35">3 Hrs</button>
-            <button class="btn-timeframe px-2.5 py-1 rounded active bg-emerald-600 text-white font-bold" data-bars="75">1 Day (75c)</button>
-            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="150">2 Days</button>
-            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="300">4 Days</button>
-        `;
-    } else {
-        timeframeContainer.innerHTML = `
-            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="30">1M</button>
-            <button class="btn-timeframe px-2.5 py-1 rounded active bg-sky-600 text-white font-bold" data-bars="90">3M</button>
-            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="180">6M</button>
-            <button class="btn-timeframe px-2.5 py-1 rounded" data-bars="365">1Y</button>
-        `;
-    }
+// Initialize Lightweight Charts
+function initTradingViewChart() {
+    if (!container) return;
 
-    // Attach listeners
-    timeframeContainer.querySelectorAll('.btn-timeframe').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            timeframeContainer.querySelectorAll('.btn-timeframe').forEach(b => {
-                b.classList.remove('active', 'bg-emerald-600', 'bg-sky-600', 'text-white', 'font-bold');
-            });
-            const activeColor = appState.interval === '5m' ? 'bg-emerald-600' : 'bg-sky-600';
-            e.target.classList.add('active', activeColor, 'text-white', 'font-bold');
-            appState.bars = parseInt(e.target.dataset.bars);
-            fetchChartData(false);
+    const isDark = state.theme === 'dark';
+    const bgCol = isDark ? '#131722' : '#ffffff';
+    const textCol = isDark ? '#d1d4dc' : '#131722';
+    const gridCol = isDark ? '#1e222d' : '#f0f3fa';
+    const borderCol = isDark ? '#2a2e39' : '#e0e3eb';
+
+    container.innerHTML = '';
+
+    tvChart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        layout: {
+            background: { type: 'solid', color: bgCol },
+            textColor: textCol,
+            fontFamily: "'Trebuchet MS', Roboto, Ubuntu, sans-serif",
+            fontSize: 11
+        },
+        grid: {
+            vertLines: { color: gridCol },
+            horzLines: { color: gridCol }
+        },
+        crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
+            vertLine: {
+                color: '#758696',
+                width: 1,
+                style: LightweightCharts.LineStyle.Dashed,
+                labelBackgroundColor: '#2962ff'
+            },
+            horzLine: {
+                color: '#758696',
+                width: 1,
+                style: LightweightCharts.LineStyle.Dashed,
+                labelBackgroundColor: '#2962ff'
+            }
+        },
+        rightPriceScale: {
+            borderColor: borderCol,
+            visible: true,
+            autoScale: true,
+            scaleMargins: {
+                top: 0.1,
+                bottom: 0.2
+            }
+        },
+        timeScale: {
+            borderColor: borderCol,
+            timeVisible: true,
+            secondsVisible: false,
+            fixLeftEdge: true,
+            fixRightEdge: false
+        },
+        handleScroll: {
+            mouseWheel: true,
+            pressedMouseMove: true,
+            horzTouchDrag: true,
+            vertTouchDrag: true
+        },
+        handleScale: {
+            axisPressedMouseMove: true,
+            mouseWheel: true,
+            pinch: true
+        }
+    });
+
+    // Volume Histogram (Lower 20% overlay)
+    volumeSeries = tvChart.addHistogramSeries({
+        color: '#26a69a',
+        priceFormat: {
+            type: 'volume'
+        },
+        priceScaleId: 'volume',
+        scaleMargins: {
+            top: 0.82,
+            bottom: 0
+        }
+    });
+    tvChart.priceScale('volume').applyOptions({
+        scaleMargins: {
+            top: 0.82,
+            bottom: 0
+        }
+    });
+
+    // Historical Candlestick Series (Exact TradingView Colors)
+    candleSeries = tvChart.addCandlestickSeries({
+        upColor: '#089981',
+        downColor: '#f23645',
+        borderUpColor: '#089981',
+        borderDownColor: '#f23645',
+        wickUpColor: '#089981',
+        wickDownColor: '#f23645'
+    });
+
+    // SMA 20 Overlay Series
+    smaSeries = tvChart.addLineSeries({
+        color: '#f59e0b',
+        lineWidth: 1.5,
+        title: 'SMA 20',
+        crosshairMarkerVisible: false
+    });
+
+    // AI Forecast Predicted Candles (Purple/Cyan Hue for distinction)
+    forecastCandleSeries = tvChart.addCandlestickSeries({
+        upColor: '#2962ff',
+        downColor: '#e91e63',
+        borderUpColor: '#2962ff',
+        borderDownColor: '#e91e63',
+        wickUpColor: '#2962ff',
+        wickDownColor: '#e91e63',
+        priceLineVisible: false
+    });
+
+    // AI Forecast Upper High Envelope Line
+    forecastHighLine = tvChart.addLineSeries({
+        color: '#089981',
+        lineWidth: 1.5,
+        lineStyle: LightweightCharts.LineStyle.Dashed,
+        title: 'Pred High',
+        crosshairMarkerVisible: true
+    });
+
+    // AI Forecast Lower Low Envelope Line
+    forecastLowLine = tvChart.addLineSeries({
+        color: '#f23645',
+        lineWidth: 1.5,
+        lineStyle: LightweightCharts.LineStyle.Dashed,
+        title: 'Pred Low',
+        crosshairMarkerVisible: true
+    });
+
+    // AI Forecast Expected Close Path
+    forecastCloseLine = tvChart.addLineSeries({
+        color: '#2962ff',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Dotted,
+        title: 'AI Path'
+    });
+
+    // Crosshair Sync for Header Bar
+    tvChart.subscribeCrosshairMove(param => {
+        if (!param || !param.time || !param.seriesPrices) {
+            restoreLatestHeaderBar();
+            return;
+        }
+
+        const candleData = param.seriesPrices.get(candleSeries) || param.seriesPrices.get(forecastCandleSeries);
+        const volData = param.seriesPrices.get(volumeSeries);
+
+        if (candleData) {
+            updateHeaderOHLC(candleData.open, candleData.high, candleData.low, candleData.close, volData);
+        }
+    });
+
+    // Window Resize Observer
+    const resizeObserver = new ResizeObserver(entries => {
+        if (!entries || entries.length === 0 || !tvChart) return;
+        const entry = entries[0];
+        tvChart.applyOptions({
+            width: entry.contentRect.width,
+            height: entry.contentRect.height
         });
     });
+    resizeObserver.observe(container);
 }
 
-function setupEventListeners() {
-    // 5m vs 1d Toggle
-    btnInterval5m.addEventListener('click', () => {
-        if (appState.interval === '5m') return;
-        appState.interval = '5m';
-        appState.bars = 75;
-        btnInterval5m.className = 'px-3 py-1.5 rounded bg-emerald-600 text-white font-bold transition flex items-center gap-1.5';
-        btnInterval1d.className = 'px-3 py-1.5 rounded text-slate-400 hover:text-white transition flex items-center gap-1.5';
-        badgeInterval.className = 'px-2 py-0.5 text-xs font-semibold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-        badgeInterval.textContent = '5-Min Intraday';
-        labelActiveTimeframe.textContent = '5-Minute Candles';
-        labelActiveTimeframe.className = 'text-emerald-400 font-bold';
-        labelActiveIntervalBox.textContent = '5-Minute Candles';
-        renderTimeframeButtons();
-        fetchChartData(false);
-    });
-
-    btnInterval1d.addEventListener('click', () => {
-        if (appState.interval === '1d') return;
-        appState.interval = '1d';
-        appState.bars = 90;
-        btnInterval1d.className = 'px-3 py-1.5 rounded bg-sky-600 text-white font-bold transition flex items-center gap-1.5';
-        btnInterval5m.className = 'px-3 py-1.5 rounded text-slate-400 hover:text-white transition flex items-center gap-1.5';
-        badgeInterval.className = 'px-2 py-0.5 text-xs font-semibold rounded bg-sky-500/20 text-sky-400 border border-sky-500/30';
-        badgeInterval.textContent = 'Daily (1D)';
-        labelActiveTimeframe.textContent = 'Daily Candles (1D)';
-        labelActiveTimeframe.className = 'text-sky-400 font-bold';
-        labelActiveIntervalBox.textContent = 'Daily Candles';
-        renderTimeframeButtons();
-        fetchChartData(false);
-    });
-
-    // Refresh button
-    btnRefresh.addEventListener('click', () => {
+// Fetch Market & Chart Data from Server
+async function loadMarketAndChartData(forceRefresh = false) {
+    if (loader) {
+        loader.classList.remove('opacity-0', 'pointer-events-none');
+    }
+    if (refreshIcon) {
         refreshIcon.classList.add('animate-spin');
-        fetchChartData(true).finally(() => {
-            setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
-        });
-    });
+    }
 
-    // Horizon selector
-    selectHorizon.addEventListener('change', (e) => {
-        appState.horizon = parseInt(e.target.value);
-        fetchChartData(false);
-    });
-
-    // Chart Type (Candle vs Line)
-    btnCandle.addEventListener('click', () => {
-        appState.chartType = 'candlestick';
-        btnCandle.classList.add('active', 'bg-slate-700', 'text-white', 'font-semibold');
-        btnCandle.classList.remove('text-slate-400');
-        btnLine.classList.remove('active', 'bg-slate-700', 'text-white', 'font-semibold');
-        btnLine.classList.add('text-slate-400');
-        renderUnifiedChart();
-    });
-
-    btnLine.addEventListener('click', () => {
-        appState.chartType = 'line';
-        btnLine.classList.add('active', 'bg-slate-700', 'text-white', 'font-semibold');
-        btnLine.classList.remove('text-slate-400');
-        btnCandle.classList.remove('active', 'bg-slate-700', 'text-white', 'font-semibold');
-        btnCandle.classList.add('text-slate-400');
-        renderUnifiedChart();
-    });
-
-    // Overlays
-    toggleSMA.addEventListener('change', (e) => {
-        appState.showSMA = e.target.checked;
-        renderUnifiedChart();
-    });
-
-    toggleChannel.addEventListener('change', (e) => {
-        appState.showChannel = e.target.checked;
-        renderUnifiedChart();
-    });
-
-    // CSV Download
-    btnDownloadCSV.addEventListener('click', downloadForecastCSV);
-
-    // Retrain button
-    btnRetrain.addEventListener('click', handleRetrain);
-}
-
-/**
- * Fetch unified chart data from the FastAPI backend
- */
-async function fetchChartData(forceRefresh = false) {
-    showLoader(true);
     try {
-        const url = `/api/chart-data?interval=${appState.interval}&bars=${appState.bars}&horizon=${appState.horizon}&force_refresh=${forceRefresh}`;
+        const url = `/api/chart-data?interval=${state.interval}&bars=${state.bars}&horizon=${state.horizon}&force_refresh=${forceRefresh}`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         
         const data = await res.json();
-        appState.chartData = data;
-        
-        updateMarketKPIs(data.market_summary);
-        renderUnifiedChart();
-        renderForecastCards(data.forecast);
-        renderForecastTable(data.forecast);
-        updateModelMetrics(data.metrics);
-        
+        state.chartData = data;
+
+        // Render everything
+        renderChartData(data);
+        renderWatchlist(data.watchlist);
+        renderQuoteCard(data.market_summary);
+        renderForecastCards(data.forecast_candles);
+
     } catch (err) {
-        console.error('Error fetching chart data:', err);
-        alert('Could not load data from API. Please ensure server.py is running.');
+        console.error("Failed to load chart data:", err);
     } finally {
-        showLoader(false);
+        if (loader) {
+            loader.classList.add('opacity-0', 'pointer-events-none');
+        }
+        if (refreshIcon) {
+            refreshIcon.classList.remove('animate-spin');
+        }
     }
 }
 
-function showLoader(visible) {
-    if (!chartLoader) return;
-    if (visible) {
-        chartLoader.classList.remove('hidden');
-        chartLoader.style.opacity = '1';
-    } else {
-        chartLoader.style.opacity = '0';
-        setTimeout(() => chartLoader.classList.add('hidden'), 200);
+// Populate Chart Series
+function renderChartData(data) {
+    if (!tvChart || !data) return;
+
+    // 1. Candlesticks
+    if (candleSeries && data.candles) {
+        candleSeries.setData(data.candles);
+    }
+
+    // 2. Volume
+    if (volumeSeries && data.volume_bars) {
+        volumeSeries.setData(data.volume_bars);
+    }
+
+    // 3. SMA 20
+    if (smaSeries) {
+        if (state.overlays.sma && data.sma_points && data.sma_points.length > 0) {
+            smaSeries.setData(data.sma_points);
+            smaSeries.applyOptions({ visible: true });
+        } else {
+            smaSeries.applyOptions({ visible: false });
+        }
+    }
+
+    // 4. AI Forecast Candles & Envelope
+    if (forecastCandleSeries && data.forecast_candles) {
+        forecastCandleSeries.setData(data.forecast_candles);
+    }
+
+    if (forecastHighLine && forecastLowLine && forecastCloseLine) {
+        if (state.overlays.envelope) {
+            forecastHighLine.setData(data.forecast_high_line || []);
+            forecastLowLine.setData(data.forecast_low_line || []);
+            forecastCloseLine.setData(data.forecast_close_line || []);
+            forecastHighLine.applyOptions({ visible: true });
+            forecastLowLine.applyOptions({ visible: true });
+            forecastCloseLine.applyOptions({ visible: true });
+        } else {
+            forecastHighLine.applyOptions({ visible: false });
+            forecastLowLine.applyOptions({ visible: false });
+            forecastCloseLine.applyOptions({ visible: false });
+        }
+    }
+
+    // 5. Add Boundary Marker at Transition Point
+    if (candleSeries && data.transition_time) {
+        candleSeries.setMarkers([
+            {
+                time: data.transition_time,
+                position: 'aboveBar',
+                color: '#2962ff',
+                shape: 'arrowDown',
+                text: 'AI Projection ➔'
+            }
+        ]);
+    }
+
+    // Update Header Bar with Latest Candle
+    restoreLatestHeaderBar();
+
+    // Scroll to right edge
+    tvChart.timeScale().scrollToPosition(4, false);
+}
+
+// Update Top Header OHLC Info
+function updateHeaderOHLC(o, h, l, c, vol) {
+    if (barOpen) barOpen.textContent = formatPrice(o);
+    if (barHigh) barHigh.textContent = formatPrice(h);
+    if (barLow) barLow.textContent = formatPrice(l);
+    if (barClose) barClose.textContent = formatPrice(c);
+
+    if (barChange && o != null && c != null) {
+        const chg = c - o;
+        const pct = ((chg / o) * 100);
+        const sign = chg >= 0 ? '+' : '';
+        barChange.textContent = `${sign}${formatPrice(chg)} (${sign}${pct.toFixed(2)}%)`;
+        barChange.className = chg >= 0 ? 'text-xs font-bold text-[#089981]' : 'text-xs font-bold text-[#f23645]';
+    }
+
+    if (barVol && vol != null) {
+        const v = typeof vol === 'object' ? vol.value : vol;
+        barVol.textContent = formatCompactVol(v);
     }
 }
 
-/**
- * Update Top Bar KPIs
- */
-function updateMarketKPIs(summary) {
-    if (!summary) return;
-    
-    document.getElementById('kpi-close').textContent = `₹${summary.last_close.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    
-    const chgEl = document.getElementById('kpi-change');
-    const sign = summary.day_change >= 0 ? '+' : '';
-    chgEl.textContent = `${sign}${summary.day_change.toFixed(2)} (${sign}${summary.day_change_pct.toFixed(2)}%)`;
-    
-    if (summary.day_change >= 0) {
-        chgEl.className = 'text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-    } else {
-        chgEl.className = 'text-xs font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
-    }
-
-    document.getElementById('kpi-high').textContent = `₹${summary.last_high.toLocaleString('en-IN')}`;
-    document.getElementById('kpi-low').textContent = `₹${summary.last_low.toLocaleString('en-IN')}`;
-    document.getElementById('kpi-52w').textContent = `₹${summary.low_52w.toLocaleString('en-IN')} - ₹${summary.high_52w.toLocaleString('en-IN')}`;
-    document.getElementById('kpi-rsi').textContent = summary.current_rsi ? summary.current_rsi.toFixed(1) : '--';
+function restoreLatestHeaderBar() {
+    if (!state.chartData || !state.chartData.candles || state.chartData.candles.length === 0) return;
+    const last = state.chartData.candles[state.chartData.candles.length - 1];
+    const lastVol = state.chartData.volume_bars ? state.chartData.volume_bars[state.chartData.volume_bars.length - 1] : null;
+    updateHeaderOHLC(last.open, last.high, last.low, last.close, lastVol);
 }
 
-/**
- * RENDER THE UNIFIED CHART: Current + Predicted in the EXACT Same Graph
- */
-function renderUnifiedChart() {
-    if (!appState.chartData) return;
-    
-    const { historical, forecast, transition_date, transition_price, interval } = appState.chartData;
-    const traces = [];
+// Render Watchlist (Matching TradingView Screenshot)
+function renderWatchlist(watchlist) {
+    if (!watchlistBody || !watchlist) return;
 
-    // 1. HISTORICAL COMPONENT
-    const histDates = historical.map(d => d.date);
-    const histOpens = historical.map(d => d.open);
-    const histHighs = historical.map(d => d.high);
-    const histLows = historical.map(d => d.low);
-    const histCloses = historical.map(d => d.close);
+    const iconBadgeColors = {
+        'NIFTY': { bg: 'bg-[#2962ff]', label: '50' },
+        'BANKNIFTY': { bg: 'bg-[#6366f1]', label: 'BK' },
+        'SENSEX': { bg: 'bg-[#0284c7]', label: '30' },
+        'CNXIT': { bg: 'bg-[#8b5cf6]', label: 'IT' },
+        'SPX': { bg: 'bg-[#f43f5e]', label: '500' }
+    };
 
-    if (appState.chartType === 'candlestick') {
-        traces.push({
-            type: 'candlestick',
-            name: `Historical ${interval === '5m' ? '5-Min' : 'Daily'} Candles`,
-            x: histDates,
-            open: histOpens,
-            high: histHighs,
-            low: histLows,
-            close: histCloses,
-            increasing: { line: { color: '#22c55e', width: 1.5 }, fillcolor: '#22c55e' },
-            decreasing: { line: { color: '#ef4444', width: 1.5 }, fillcolor: '#ef4444' },
-            hoverlabel: { bgcolor: '#1e293b' }
-        });
-    } else {
-        traces.push({
-            type: 'scatter',
-            mode: 'lines',
-            name: 'Historical Close',
-            x: histDates,
-            y: histCloses,
-            line: { color: '#38bdf8', width: 2.2 }
-        });
-    }
+    let html = '';
+    watchlist.forEach(item => {
+        const isUp = item.chg >= 0;
+        const chgColor = isUp ? 'text-[#089981]' : 'text-[#f23645]';
+        const sign = isUp ? '+' : '';
+        const badge = iconBadgeColors[item.symbol] || { bg: 'bg-slate-600', label: item.symbol.slice(0, 2) };
+        const isSelected = item.symbol === 'NIFTY';
 
-    // 2. TECHNICAL OVERLAYS
-    if (appState.showSMA) {
-        traces.push({
-            type: 'scatter',
-            mode: 'lines',
-            name: 'SMA 20',
-            x: histDates,
-            y: historical.map(d => d.sma20),
-            line: { color: '#fbbf24', width: 1.5 },
-            hoverinfo: 'skip'
-        });
-    }
-
-    // 3. PREDICTED COMPONENT (Continuous on the EXACT SAME TIME AXIS)
-    const lastHist = historical[historical.length - 1];
-    const bridgeDates = [lastHist.date, ...forecast.map(f => f.date)];
-    const bridgeHighs = [lastHist.high, ...forecast.map(f => f.high)];
-    const bridgeLows = [lastHist.low, ...forecast.map(f => f.low)];
-    const bridgeCloses = [lastHist.close, ...forecast.map(f => f.close)];
-
-    // Shaded Forecast Channel
-    if (appState.showChannel) {
-        traces.push({
-            type: 'scatter',
-            mode: 'lines',
-            name: 'Predicted High Channel',
-            x: bridgeDates,
-            y: bridgeHighs,
-            line: { color: '#4ade80', width: 2.5, dash: 'dash' },
-            hoverinfo: 'x+y'
-        });
-
-        traces.push({
-            type: 'scatter',
-            mode: 'lines',
-            name: 'Predicted Low Channel',
-            x: bridgeDates,
-            y: bridgeLows,
-            fill: 'tonexty',
-            fillcolor: 'rgba(56, 189, 248, 0.15)',
-            line: { color: '#38bdf8', width: 2.5, dash: 'dash' },
-            hoverinfo: 'x+y'
-        });
-    }
-
-    // Predicted Candlesticks
-    if (appState.chartType === 'candlestick') {
-        traces.push({
-            type: 'candlestick',
-            name: 'Predicted Candlesticks (AI)',
-            x: forecast.map(f => f.date),
-            open: forecast.map(f => f.open),
-            high: forecast.map(f => f.high),
-            low: forecast.map(f => f.low),
-            close: forecast.map(f => f.close),
-            increasing: { line: { color: '#34d399', width: 2 }, fillcolor: 'rgba(52, 211, 153, 0.6)' },
-            decreasing: { line: { color: '#f87171', width: 2 }, fillcolor: 'rgba(248, 113, 113, 0.6)' },
-            hoverlabel: { bgcolor: '#1e293b' }
-        });
-    }
-
-    // Predicted Close Line
-    traces.push({
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Predicted Close Path',
-        x: bridgeDates,
-        y: bridgeCloses,
-        line: { color: '#fbbf24', width: 2, dash: 'dot' },
-        marker: { size: 6, color: '#fbbf24' }
+        html += `
+            <tr class="watchlist-row ${isSelected ? 'bg-blue-50/70 dark:bg-blue-900/20' : ''}" data-symbol="${item.symbol}">
+                <td class="py-2 px-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full ${badge.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                            ${badge.label}
+                        </span>
+                        <div>
+                            <div class="font-bold text-[#131722] dark:text-slate-200 text-xs">${item.symbol}</div>
+                            <div class="text-[9px] text-slate-400">INDEX</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-2 px-2 text-right font-medium text-[#131722] dark:text-slate-100">${formatPrice(item.last)}</td>
+                <td class="py-2 px-2 text-right font-semibold ${chgColor}">${sign}${formatPrice(item.chg)}</td>
+                <td class="py-2 px-3 text-right font-semibold ${chgColor}">${sign}${item.pct.toFixed(2)}%</td>
+            </tr>
+        `;
     });
 
-    // 4. VERTICAL DEMARCATION LINE
-    const demarcationText = interval === '5m' 
-        ? `⚡ LATEST: ${transition_date.split(' ')[1]} IST | NEXT 5-MIN CANDLES ➔` 
-        : `⚡ TODAY: ${transition_date} | FUTURE FORECAST ➔`;
-
-    const shapes = [
-        {
-            type: 'line',
-            x0: transition_date,
-            x1: transition_date,
-            y0: 0,
-            y1: 1,
-            yref: 'paper',
-            line: {
-                color: '#e2e8f0',
-                width: 1.8,
-                dash: 'dashdot'
-            }
-        }
-    ];
-
-    const annotations = [
-        {
-            x: transition_date,
-            y: 0.98,
-            yref: 'paper',
-            text: demarcationText,
-            showarrow: false,
-            font: {
-                color: '#38bdf8',
-                size: 11,
-                family: 'JetBrains Mono, monospace',
-                weight: 'bold'
-            },
-            bgcolor: 'rgba(15, 23, 42, 0.85)',
-            bordercolor: '#38bdf8',
-            borderwidth: 1,
-            borderpad: 4
-        }
-    ];
-
-    const layout = {
-        template: 'plotly_dark',
-        paper_bgcolor: '#111827',
-        plot_bgcolor: '#111827',
-        font: { family: 'Inter, sans-serif', color: '#94a3b8' },
-        margin: { l: 60, r: 40, t: 30, b: 40 },
-        height: 560,
-        dragmode: 'pan',
-        xaxis: {
-            type: 'category',
-            showgrid: true,
-            gridcolor: '#1f2937',
-            linecolor: '#334155',
-            tickfont: { size: 10, family: 'JetBrains Mono' },
-            rangeslider: { visible: false }
-        },
-        yaxis: {
-            showgrid: true,
-            gridcolor: '#1f2937',
-            linecolor: '#334155',
-            tickfont: { size: 11, family: 'JetBrains Mono' },
-            tickprefix: '₹',
-            autorange: true
-        },
-        legend: {
-            orientation: 'h',
-            x: 0,
-            y: 1.08,
-            font: { size: 11, color: '#e2e8f0' },
-            bgcolor: 'rgba(17, 24, 39, 0.5)'
-        },
-        shapes: shapes,
-        annotations: annotations
-    };
-
-    const config = {
-        responsive: true,
-        displayModeBar: true,
-        displaylogo: false,
-        modeBarButtonsToRemove: ['lasso2d', 'select2d']
-    };
-
-    Plotly.react('plotly-chart-container', traces, layout, config);
+    watchlistBody.innerHTML = html;
 }
 
-/**
- * Render individual forecast cards
- */
+// Render Quote Card (Matching TradingView Screenshot)
+function renderQuoteCard(summary) {
+    if (!summary) return;
+
+    const formatted = formatPrice(summary.last_close);
+    if (sideLastPrice) sideLastPrice.textContent = formatted;
+    
+    // Update Floating Buy/Sell Badges
+    const badgeSell = document.getElementById('badge-sell-price');
+    const badgeBuy = document.getElementById('badge-buy-price');
+    if (badgeSell) badgeSell.textContent = formatted;
+    if (badgeBuy) badgeBuy.textContent = formatted;
+
+    if (sideChange) {
+        const isUp = summary.change_pts >= 0;
+        const sign = isUp ? '+' : '';
+        sideChange.textContent = `${sign}${formatPrice(summary.change_pts)} ${sign}${summary.change_pct.toFixed(2)}%`;
+        sideChange.className = isUp ? 'text-[#089981] font-bold' : 'text-[#f23645] font-bold';
+    }
+    if (sideVol) {
+        sideVol.textContent = formatCompactVol(summary.total_volume);
+    }
+}
+
+// Render AI Prediction Cards
 function renderForecastCards(forecast) {
-    const grid = document.getElementById('forecast-cards-grid');
-    if (!grid || !forecast) return;
+    if (!sideForecastList || !forecast) return;
 
-    grid.innerHTML = forecast.map((f, i) => {
-        const isBullish = f.trend_bias.includes('Bullish');
-        const badgeClass = isBullish ? 'badge-bullish' : (f.trend_bias.includes('Bearish') ? 'badge-bearish' : 'badge-neutral');
-        const changeSign = f.change_pct >= 0 ? '+' : '';
+    let html = '';
+    forecast.forEach((f, idx) => {
+        const isUp = f.change_pct >= 0;
+        const trendClass = isUp ? 'badge-bullish' : 'badge-bearish';
+        const trendSign = isUp ? '+' : '';
+        const trendIcon = isUp ? '▲' : '▼';
 
-        return `
-            <div class="forecast-card-glass rounded-xl p-4 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-1 mb-1">
-                        <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">${f.day}</span>
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeClass}">
-                            ${changeSign}${f.change_pct.toFixed(2)}%
-                        </span>
+        html += `
+            <div class="forecast-card text-xs">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px] flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-[#089981]' : 'bg-[#f23645]'}"></span>
+                        ${f.day || `Step +${idx+1}`} <span class="text-slate-400 font-normal">(${f.display_date})</span>
+                    </span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${trendClass}">
+                        ${trendIcon} ${f.trend_bias || (isUp ? 'Bullish' : 'Bearish')}
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 my-1.5 bg-slate-50 dark:bg-slate-800/40 p-2 rounded">
+                    <div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Pred High</div>
+                        <div class="font-mono font-bold text-[#089981] text-xs">₹${formatPrice(f.high)}</div>
                     </div>
-                    <div class="text-[11px] text-slate-300 font-mono font-semibold mb-3">${f.display_date}</div>
-
-                    <!-- Predicted High -->
-                    <div class="mb-2 bg-emerald-950/30 p-2 rounded-lg border border-emerald-500/20">
-                        <div class="text-[10px] text-emerald-400 uppercase font-semibold">Pred. High</div>
-                        <div class="text-base font-['JetBrains_Mono'] font-bold text-emerald-400">
-                            ₹${f.high.toLocaleString('en-IN', {minimumFractionDigits: 2})}
-                        </div>
-                    </div>
-
-                    <!-- Predicted Low -->
-                    <div class="mb-2 bg-rose-950/30 p-2 rounded-lg border border-rose-500/20">
-                        <div class="text-[10px] text-rose-400 uppercase font-semibold">Pred. Low</div>
-                        <div class="text-base font-['JetBrains_Mono'] font-bold text-rose-400">
-                            ₹${f.low.toLocaleString('en-IN', {minimumFractionDigits: 2})}
-                        </div>
+                    <div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Pred Low</div>
+                        <div class="font-mono font-bold text-[#f23645] text-xs">₹${formatPrice(f.low)}</div>
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between font-['JetBrains_Mono']">
-                    <span>Close: <b class="text-slate-200">₹${Math.round(f.close).toLocaleString('en-IN')}</b></span>
-                    <span>Spread: <b class="text-sky-300">₹${f.spread.toFixed(1)}</b></span>
+                <div class="flex items-center justify-between text-[11px] pt-1 text-slate-500">
+                    <span>Target Close: <b class="font-mono text-slate-800 dark:text-slate-200">₹${formatPrice(f.close)}</b></span>
+                    <span>Spread: <b class="font-mono text-slate-700 dark:text-slate-300">₹${formatPrice(f.spread)}</b></span>
                 </div>
             </div>
         `;
-    }).join('');
+    });
+
+    sideForecastList.innerHTML = html;
 }
 
-/**
- * Render detailed table
- */
-function renderForecastTable(forecast) {
-    const tbody = document.getElementById('forecast-table-body');
-    if (!tbody || !forecast) return;
-
-    tbody.innerHTML = forecast.map(f => {
-        const isBullish = f.trend_bias.includes('Bullish');
-        const badgeClass = isBullish ? 'text-emerald-400' : 'text-rose-400';
-        return `
-            <tr class="hover:bg-slate-800/40 transition">
-                <td class="py-2.5 px-3 font-bold text-sky-400">${f.day}</td>
-                <td class="py-2.5 px-3 text-slate-200 font-semibold">${f.display_date}</td>
-                <td class="py-2.5 px-3 text-right font-bold text-emerald-400">₹${f.high.toFixed(2)}</td>
-                <td class="py-2.5 px-3 text-right font-bold text-rose-400">₹${f.low.toFixed(2)}</td>
-                <td class="py-2.5 px-3 text-right text-amber-300">₹${f.close.toFixed(2)}</td>
-                <td class="py-2.5 px-3 text-right text-slate-300">₹${f.spread.toFixed(2)}</td>
-                <td class="py-2.5 px-3 text-center">
-                    <span class="text-xs font-semibold ${badgeClass}">${f.trend_bias}</span>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function updateModelMetrics(metrics) {
-    if (!metrics) return;
-    if (metrics.high_mape !== undefined) {
-        document.getElementById('stat-high-mape').textContent = `${metrics.high_mape}%`;
+// Setup Event Handlers
+function setupEventHandlers() {
+    // Refresh Button
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', () => loadMarketAndChartData(true));
     }
-    if (metrics.low_mape !== undefined) {
-        document.getElementById('stat-low-mape').textContent = `${metrics.low_mape}%`;
-    }
-}
 
-function downloadForecastCSV() {
-    if (!appState.chartData || !appState.chartData.forecast) return;
-    
-    const headers = ['Interval', 'DateTime', 'Predicted_High', 'Predicted_Low', 'Predicted_Close', 'Predicted_Open', 'Spread', 'Change_%', 'Trend_Bias'];
-    const rows = appState.chartData.forecast.map(f => [
-        f.day,
-        `"${f.display_date}"`,
-        f.high,
-        f.low,
-        f.close,
-        f.open,
-        f.spread,
-        f.change_pct,
-        `"${f.trend_bias}"`
-    ]);
-    
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `nifty50_${appState.interval}_forecast.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+    // Timeframe Pills (5m, 15m, 1H, D)
+    const pills = [
+        { el: pill5m, int: '5m', bars: 120, label: '5m' },
+        { el: pill15m, int: '5m', bars: 180, label: '15m' },
+        { el: pill1h, int: '5m', bars: 300, label: '1H' },
+        { el: pill1d, int: '1d', bars: 90, label: '1D' }
+    ];
 
-async function handleRetrain() {
-    const statusEl = document.getElementById('retrain-status');
-    const confirmRetrain = confirm(`Trigger retraining of active ${appState.interval} PyTorch LSTM model?`);
-    if (!confirmRetrain) return;
-
-    statusEl.textContent = 'Retraining in progress...';
-    statusEl.className = 'text-[11px] text-amber-400 font-semibold animate-pulse';
-
-    try {
-        const res = await fetch('/api/retrain', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ interval: appState.interval, epochs: 25, learning_rate: 0.003 })
+    pills.forEach(p => {
+        if (!p.el) return;
+        p.el.addEventListener('click', () => {
+            pills.forEach(item => {
+                if (item.el) {
+                    item.el.className = 'px-2 py-1 rounded text-slate-600 hover:bg-[#f0f3fa] transition';
+                }
+            });
+            p.el.className = 'px-2 py-1 rounded font-bold text-[#2962ff] bg-[#f0f3fa] transition';
+            
+            state.interval = p.int;
+            state.bars = p.bars;
+            if (labelIntervalText) labelIntervalText.textContent = p.label;
+            loadMarketAndChartData(false);
         });
-        const data = await res.json();
-        alert(data.message);
-    } catch (e) {
-        statusEl.textContent = 'Error';
-        alert('Failed: ' + e);
+    });
+
+    // Bottom Range Buttons (1D, 5D, 1M, 3M, 6M, YTD, 1Y, ALL)
+    document.querySelectorAll('.btn-range').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.btn-range').forEach(b => {
+                b.classList.remove('active', 'bg-[#f0f3fa]', 'text-[#2962ff]', 'font-bold');
+            });
+            e.target.classList.add('active', 'bg-[#f0f3fa]', 'text-[#2962ff]', 'font-bold');
+            
+            const range = e.target.dataset.range;
+            if (range === '1D') { state.interval = '5m'; state.bars = 75; }
+            else if (range === '5D') { state.interval = '5m'; state.bars = 375; }
+            else if (range === '1M') { state.interval = '1d'; state.bars = 30; }
+            else if (range === '3M') { state.interval = '1d'; state.bars = 90; }
+            else if (range === '6M') { state.interval = '1d'; state.bars = 180; }
+            else if (range === 'YTD') { state.interval = '1d'; state.bars = 220; }
+            else if (range === '1Y') { state.interval = '1d'; state.bars = 365; }
+            else if (range === 'ALL') { state.interval = '1d'; state.bars = 500; }
+
+            loadMarketAndChartData(false);
+        });
+    });
+
+    // Checkbox Overlays
+    if (chkSma) {
+        chkSma.addEventListener('change', (e) => {
+            state.overlays.sma = e.target.checked;
+            if (smaSeries) {
+                smaSeries.applyOptions({ visible: state.overlays.sma });
+            }
+        });
+    }
+
+    if (chkEnvelope) {
+        chkEnvelope.addEventListener('change', (e) => {
+            state.overlays.envelope = e.target.checked;
+            if (forecastHighLine && forecastLowLine && forecastCloseLine) {
+                forecastHighLine.applyOptions({ visible: state.overlays.envelope });
+                forecastLowLine.applyOptions({ visible: state.overlays.envelope });
+                forecastCloseLine.applyOptions({ visible: state.overlays.envelope });
+            }
+        });
+    }
+
+    // Retrain Model Button
+    if (btnSideRetrain) {
+        btnSideRetrain.addEventListener('click', async () => {
+            btnSideRetrain.disabled = true;
+            btnSideRetrain.textContent = 'Training LSTM...';
+            try {
+                const res = await fetch('/api/retrain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ interval: state.interval, epochs: 25, learning_rate: 0.003 })
+                });
+                const d = await res.json();
+                alert(d.message || "Model retraining initiated!");
+            } catch (e) {
+                alert("Failed to trigger retrain: " + e);
+            } finally {
+                setTimeout(() => {
+                    btnSideRetrain.disabled = false;
+                    btnSideRetrain.textContent = 'Retrain Model';
+                }, 4000);
+            }
+        });
+    }
+
+    // Mode Switcher: AI TradingView vs Official Embed
+    if (tabAi && tabTv) {
+        tabAi.addEventListener('click', () => {
+            state.activeTab = 'ai';
+            tabAi.className = 'px-2.5 py-1 rounded-md bg-white text-[#2962ff] shadow-sm font-bold flex items-center gap-1';
+            tabTv.className = 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1';
+            if (container) container.classList.remove('hidden');
+            if (officialContainer) officialContainer.classList.add('hidden');
+        });
+
+        tabTv.addEventListener('click', () => {
+            state.activeTab = 'tv';
+            tabTv.className = 'px-2.5 py-1 rounded-md bg-white text-[#2962ff] shadow-sm font-bold flex items-center gap-1';
+            tabAi.className = 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1';
+            if (container) container.classList.add('hidden');
+            if (officialContainer) {
+                officialContainer.classList.remove('hidden');
+                initOfficialTradingViewWidget();
+            }
+        });
+    }
+
+    // Theme Toggle
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', () => {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            document.documentElement.classList.toggle('dark', state.theme === 'dark');
+            initTradingViewChart();
+            if (state.chartData) {
+                renderChartData(state.chartData);
+            }
+        });
+    }
+}
+
+// Official Embedded TradingView Widget
+function initOfficialTradingViewWidget() {
+    if (state.officialWidgetInitialized) return;
+    state.officialWidgetInitialized = true;
+
+    if (window.TradingView) {
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": "NSE:NIFTY",
+            "interval": "D",
+            "timezone": "Asia/Kolkata",
+            "theme": state.theme,
+            "style": "1",
+            "locale": "en",
+            "enable_publishing": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview_widget_mount",
+            "studies": ["MASimple@tv-basicstudies"]
+        });
     }
 }

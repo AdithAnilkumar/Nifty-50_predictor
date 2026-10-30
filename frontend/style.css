@@ -1,61 +1,121 @@
-/* Custom styling for financial dashboard */
+/* TradingView Style Sheet for NIFTY-50 AI Forecaster */
+
+@import url('https://fonts.googleapis.com/css2?family=Trebuchet+MS&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+    --tv-bg: #ffffff;
+    --tv-header-bg: #ffffff;
+    --tv-sidebar-bg: #ffffff;
+    --tv-border: #e0e3eb;
+    --tv-text: #131722;
+    --tv-text-sub: #787b86;
+    --tv-green: #089981;
+    --tv-red: #f23645;
+    --tv-blue: #2962ff;
+    --tv-hover: #f0f3fa;
+}
+
+.dark {
+    --tv-bg: #131722;
+    --tv-header-bg: #1e222d;
+    --tv-sidebar-bg: #1e222d;
+    --tv-border: #2a2e39;
+    --tv-text: #d1d4dc;
+    --tv-text-sub: #787b86;
+    --tv-hover: #2a2e39;
+}
+
 body {
-    background-color: #0b0f19;
-    color: #f1f5f9;
+    background-color: var(--tv-bg);
+    color: var(--tv-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphism Cards */
-.forecast-card-glass {
-    background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-    border: 1px solid rgba(51, 65, 85, 0.7);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* TradingView Button Styles */
+.tv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--tv-text);
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.forecast-card-glass:hover {
-    border-color: #38bdf8;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.1);
+.tv-btn:hover {
+    background-color: var(--tv-hover);
 }
 
-/* Active buttons */
-.btn-timeframe.active {
-    background-color: #0284c7;
-    color: #ffffff;
+.tv-btn.active {
+    background-color: var(--tv-hover);
+    color: var(--tv-blue);
     font-weight: 700;
 }
 
-/* Scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
 }
 ::-webkit-scrollbar-track {
-    background: #0f172a;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #c1c5cd;
     border-radius: 3px;
 }
+.dark ::-webkit-scrollbar-thumb {
+    background: #363a45;
+}
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: #a0a4ae;
+}
+
+/* Watchlist row hover */
+.watchlist-row {
+    transition: background-color 0.1s ease;
+    cursor: pointer;
+}
+.watchlist-row:hover {
+    background-color: var(--tv-hover);
+}
+
+/* Forecast Card */
+.forecast-card {
+    background-color: #ffffff;
+    border: 1px solid var(--tv-border);
+    border-radius: 6px;
+    padding: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dark .forecast-card {
+    background-color: #1a1e29;
+    border-color: #2a2e39;
+}
+.forecast-card:hover {
+    border-color: var(--tv-blue);
+    box-shadow: 0 2px 8px rgba(41, 98, 255, 0.08);
 }
 
 /* Badges */
 .badge-bullish {
-    background-color: rgba(34, 197, 94, 0.15);
-    color: #4ade80;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background-color: rgba(8, 153, 129, 0.1);
+    color: #089981;
+    border: 1px solid rgba(8, 153, 129, 0.25);
 }
 
 .badge-bearish {
-    background-color: rgba(239, 68, 68, 0.15);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background-color: rgba(242, 54, 69, 0.1);
+    color: #f23645;
+    border: 1px solid rgba(242, 54, 69, 0.25);
 }
 
 .badge-neutral {
-    background-color: rgba(234, 179, 8, 0.15);
-    color: #facc15;
-    border: 1px solid rgba(234, 179, 8, 0.3);
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
 }
-
