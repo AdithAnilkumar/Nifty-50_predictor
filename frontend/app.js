@@ -1,7 +1,7 @@
 /**
- * NIFTY-50 Matte Obsidian & Electric Lime Forecaster
- * Syne Display Font, Electric Lime (#CCFF00) & Coral Red (#FF3366)
- * Continuous Real-Time Live Streaming (2s Ticks)
+ * NIFTY-50 3D Neural Horizon
+ * Three.js WebGL Interactive Matrix + 3D Tilt Cards + Real-Time Live Streaming (2s)
+ * Matte Obsidian (#0A0A0A) & Electric Lime (#CCFF00)
  */
 
 // Application State
@@ -12,13 +12,14 @@ const state = {
     chartData: null,
     isLive: true,
     tickCount: 0,
+    is3DActive: true,
     overlays: {
         sma: true,
         envelope: true
     }
 };
 
-// Chart References
+// Chart & Series Handles
 let chart = null;
 let candleSeries = null;
 let volumeSeries = null;
@@ -29,6 +30,11 @@ let forecastLowLine = null;
 let forecastCloseLine = null;
 let liveIntervalId = null;
 
+// Three.js Handles
+let threeScene, threeCamera, threeRenderer, threeParticles, threeGrid;
+let mouseX = 0, mouseY = 0;
+let targetX = 0, targetY = 0;
+
 // DOM Elements
 const chartMount = document.getElementById('chart-mount');
 const chartLoader = document.getElementById('chart-loader');
@@ -37,6 +43,7 @@ const headerChange = document.getElementById('header-change');
 const liveTime = document.getElementById('live-time');
 const tickCounter = document.getElementById('tick-counter');
 const chartTitle = document.getElementById('chart-title');
+const btnToggle3D = document.getElementById('btn-toggle-3d');
 
 // Header OHLC
 const barOpen = document.getElementById('bar-open');
@@ -62,8 +69,9 @@ const numFmt = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximu
 const formatPrice = (v) => v != null ? '₹' + numFmt.format(v) : '--';
 const formatRaw = (v) => v != null ? numFmt.format(v) : '--';
 
-// Initialize
+// Main Initialization
 document.addEventListener('DOMContentLoaded', () => {
+    initThreeJSScene();
     initChartEngine();
     setupEventHandlers();
     loadHistoricalData().then(() => {
@@ -71,7 +79,138 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Initialize Custom Canvas with Matte Obsidian & Electric Lime Palette
+// ==========================================
+// 1. THREE.JS 3D WEBGL NEURAL MATRIX
+// ==========================================
+function initThreeJSScene() {
+    const canvas = document.getElementById('webgl-canvas');
+    if (!canvas || !window.THREE) return;
+
+    // Scene & Camera
+    threeScene = new THREE.Scene();
+    threeScene.fog = new THREE.FogExp2(0x0A0A0A, 0.0018);
+
+    threeCamera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 2000);
+    threeCamera.position.z = 800;
+    threeCamera.position.y = 200;
+
+    // Renderer
+    threeRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    threeRenderer.setSize(window.innerWidth, window.innerHeight);
+
+    // 1. Undulating 3D Neural Wireframe Terrain
+    const terrainGeo = new THREE.PlaneGeometry(2400, 1600, 48, 36);
+    terrainGeo.rotateX(-Math.PI / 2.3);
+
+    const terrainMat = new THREE.MeshBasicMaterial({
+        color: 0x222222,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.28
+    });
+    threeGrid = new THREE.Mesh(terrainGeo, terrainMat);
+    threeGrid.position.y = -220;
+    threeScene.add(threeGrid);
+
+    // 2. 3D Floating Electric Lime Particle Constellation
+    const particleCount = 650;
+    const particleGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const scales = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 2200;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 1000 + 50;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 1600;
+        scales[i] = Math.random() * 2.5 + 1.0;
+    }
+
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    // Custom Canvas Texture for glowing circular particles
+    const pCanvas = document.createElement('canvas');
+    pCanvas.width = 32;
+    pCanvas.height = 32;
+    const pCtx = pCanvas.getContext('2d');
+    const grad = pCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+    grad.addColorStop(0, 'rgba(204, 255, 0, 1)');
+    grad.addColorStop(0.3, 'rgba(204, 255, 0, 0.6)');
+    grad.addColorStop(1, 'rgba(204, 255, 0, 0)');
+    pCtx.fillStyle = grad;
+    pCtx.fillRect(0, 0, 32, 32);
+
+    const pTex = new THREE.CanvasTexture(pCanvas);
+    const particleMat = new THREE.PointsMaterial({
+        size: 14,
+        map: pTex,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        opacity: 0.75
+    });
+
+    threeParticles = new THREE.Points(particleGeo, particleMat);
+    threeScene.add(threeParticles);
+
+    // Mouse Movement Parallax
+    window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX - window.innerWidth / 2) * 0.4;
+        mouseY = (e.clientY - window.innerHeight / 2) * 0.4;
+    });
+
+    // Resize Handler
+    window.addEventListener('resize', () => {
+        if (!threeCamera || !threeRenderer) return;
+        threeCamera.aspect = window.innerWidth / window.innerHeight;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Animation Loop (60 FPS)
+    let clock = new THREE.Clock();
+
+    function animate3D() {
+        requestAnimationFrame(animate3D);
+        if (!state.is3DActive) return;
+
+        const elapsedTime = clock.getElapsedTime();
+
+        // Smooth Camera Damping Orbit
+        targetX += (mouseX - targetX) * 0.04;
+        targetY += (mouseY - targetY) * 0.04;
+
+        threeCamera.position.x = targetX * 0.8;
+        threeCamera.position.y = 200 - targetY * 0.5;
+        threeCamera.lookAt(0, 0, -200);
+
+        // Undulate Terrain Mesh
+        if (threeGrid) {
+            const pos = threeGrid.geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const u = pos.getX(i);
+                const v = pos.getY(i);
+                const wave = Math.sin(u * 0.005 + elapsedTime * 1.5) * Math.cos(v * 0.005 + elapsedTime * 1.5) * 35;
+                pos.setZ(i, wave);
+            }
+            threeGrid.geometry.attributes.position.needsUpdate = true;
+            threeGrid.rotation.z = Math.sin(elapsedTime * 0.15) * 0.05;
+        }
+
+        // Float Particles
+        if (threeParticles) {
+            threeParticles.rotation.y = elapsedTime * 0.03;
+            threeParticles.rotation.x = Math.sin(elapsedTime * 0.02) * 0.05;
+        }
+
+        threeRenderer.render(threeScene, threeCamera);
+    }
+    animate3D();
+}
+
+// ==========================================
+// 2. CHART ENGINE (Lightweight Charts v4.2.0)
+// ==========================================
 function initChartEngine() {
     if (!chartMount) return;
     chartMount.innerHTML = '';
@@ -80,7 +219,7 @@ function initChartEngine() {
         width: chartMount.clientWidth,
         height: chartMount.clientHeight,
         layout: {
-            background: { type: 'solid', color: '#0A0A0A' }, // Deep Matte Obsidian
+            background: { type: 'solid', color: '#0A0A0A' },
             textColor: '#8E8E93',
             fontFamily: '"Plus Jakarta Sans", sans-serif',
             fontSize: 11
@@ -219,7 +358,7 @@ function initChartEngine() {
     ro.observe(chartMount);
 }
 
-// Initial Data Fetch
+// Initial Data Load
 async function loadHistoricalData() {
     if (chartLoader) chartLoader.classList.remove('opacity-0', 'pointer-events-none');
     try {
@@ -257,7 +396,7 @@ async function loadHistoricalData() {
                     position: 'aboveBar',
                     color: '#CCFF00',
                     shape: 'arrowDown',
-                    text: 'Neural Projection ➔'
+                    text: '3D Neural Horizon ➔'
                 }
             ]);
         }
@@ -275,7 +414,9 @@ async function loadHistoricalData() {
     }
 }
 
-// Real-Time Live Streaming (2s Polling)
+// ==========================================
+// 3. REAL-TIME LIVE STREAMING ENGINE (2s)
+// ==========================================
 function startLiveStreaming() {
     if (liveIntervalId) clearInterval(liveIntervalId);
     liveIntervalId = setInterval(async () => {
@@ -284,7 +425,7 @@ function startLiveStreaming() {
     }, 2000);
 }
 
-// Single Live Tick Stream
+// Fetch & Apply Single Live Tick
 async function streamTick() {
     try {
         const res = await fetch(`/api/live-tick?interval=${state.interval}`);
@@ -305,7 +446,7 @@ async function streamTick() {
             volumeSeries.update({ ...tick.volume, color: volColor });
         }
 
-        // 3. Dynamic Forecast Updates
+        // 3. Dynamic Forecast Line & Candle Updates
         if (tick.forecast_candles && forecastCandleSeries) {
             forecastCandleSeries.setData(tick.forecast_candles);
             if (forecastHighLine) forecastHighLine.setData(tick.forecast_high_line || []);
@@ -360,7 +501,9 @@ function restoreCurrentCandleHeader() {
     if (headerPrice) headerPrice.textContent = formatPrice(last.close);
 }
 
-// Initial Forecast Cards Render
+// ==========================================
+// 4. 3D INTERACTIVE TILT CARDS
+// ==========================================
 function renderForecastCards(forecasts) {
     if (!forecastCards || !forecasts) return;
     let html = '';
@@ -371,8 +514,8 @@ function renderForecastCards(forecasts) {
         const sign = isUp ? '+' : '';
 
         html += `
-            <div class="dark-prediction-card" id="card-${idx}">
-                <div class="space-y-2">
+            <div class="tilt-card" id="card-${idx}">
+                <div class="tilt-card-content space-y-2">
                     <div class="flex items-center justify-between text-xs">
                         <span class="font-display font-bold text-white text-sm">${f.day || `Step +${idx+1}`}</span>
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass}">
@@ -381,27 +524,53 @@ function renderForecastCards(forecasts) {
                     </div>
                     <div class="text-[10px] text-mutedText font-mono">${f.display_date}</div>
 
-                    <div class="bg-[#181818] rounded-xl p-2.5 border border-[#262626] space-y-1 font-mono text-xs">
+                    <div class="bg-[#181818]/90 rounded-xl p-2.5 border border-[#262626] space-y-1 font-mono text-xs">
                         <div class="flex justify-between items-baseline">
-                            <span class="text-mutedText text-[10px] uppercase">Pred High</span>
+                            <span class="text-mutedText text-[9px] uppercase tracking-wider">Pred High</span>
                             <span class="font-bold text-electricLime card-high">₹${formatRaw(f.high)}</span>
                         </div>
                         <div class="flex justify-between items-baseline">
-                            <span class="text-mutedText text-[10px] uppercase">Pred Low</span>
+                            <span class="text-mutedText text-[9px] uppercase tracking-wider">Pred Low</span>
                             <span class="font-bold text-coralRed card-low">₹${formatRaw(f.low)}</span>
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-2.5 pt-2 border-t border-[#222222] flex items-center justify-between text-[11px] font-mono">
-                    <span class="text-mutedText">Close: <b class="text-white font-bold card-close">₹${formatRaw(f.close)}</b></span>
-                    <span class="text-electricLime font-bold card-spread text-[10px]">Δ ₹${formatRaw(f.spread)}</span>
+                    <div class="pt-1.5 flex items-center justify-between text-[11px] font-mono">
+                        <span class="text-mutedText">Close: <b class="text-white card-close">₹${formatRaw(f.close)}</b></span>
+                        <span class="text-electricLime font-bold card-spread text-[10px]">Δ ₹${formatRaw(f.spread)}</span>
+                    </div>
                 </div>
             </div>
         `;
     });
 
     forecastCards.innerHTML = html;
+    attach3DTiltListeners();
+}
+
+// Attach 3D Tilt Events to Cards
+function attach3DTiltListeners() {
+    document.querySelectorAll('.tilt-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = ((y - centerY) / centerY) * -12;
+            const rotateY = ((x - centerX) / centerX) * 12;
+
+            card.style.transform = `perspective(800px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.04, 1.04, 1.04)`;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = `perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        });
+    });
 }
 
 // Live In-Place Update of Forecast Cards
@@ -464,6 +633,20 @@ function setupEventHandlers() {
         });
     }
 
+    // 3D View Toggle Button
+    if (btnToggle3D) {
+        btnToggle3D.addEventListener('click', () => {
+            state.is3DActive = !state.is3DActive;
+            const canvas = document.getElementById('webgl-canvas');
+            if (canvas) {
+                canvas.style.display = state.is3DActive ? 'block' : 'none';
+            }
+            btnToggle3D.className = state.is3DActive ?
+                'px-3 py-1.5 rounded-full bg-[#181818] hover:bg-[#222222] border border-[#333333] text-white text-xs font-medium transition flex items-center gap-1.5' :
+                'px-3 py-1.5 rounded-full bg-transparent border border-[#222222] text-mutedText text-xs font-medium transition flex items-center gap-1.5';
+        });
+    }
+
     // Overlays
     if (chkSma) {
         chkSma.addEventListener('change', (e) => {
@@ -507,7 +690,7 @@ function setupEventHandlers() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `nifty50_neural_forecast_${state.interval}.csv`;
+            a.download = `nifty50_3d_neural_forecast_${state.interval}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         });

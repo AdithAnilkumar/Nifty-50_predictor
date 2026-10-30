@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIFTY 50 • Neural Horizon</title>
+    <title>NIFTY 50 • 3D Neural Horizon</title>
+    
+    <!-- Three.js 3D WebGL Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <!-- Lightweight Charts (v4.2.0) -->
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     
-    <!-- Google Fonts: Syne (Ultra Bold Display), Plus Jakarta Sans, JetBrains Mono -->
+    <!-- Google Fonts: Syne, Plus Jakarta Sans, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS with Electric Lime Theme -->
+    <!-- Tailwind CSS with Electric Lime Palette -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,8 +24,7 @@
                 extend: {
                     colors: {
                         darkBg: '#0A0A0A',
-                        darkCard: '#141414',
-                        darkCardHover: '#1A1A1A',
+                        darkCard: '#121212',
                         darkBorder: '#242424',
                         electricLime: '#CCFF00',
                         electricLimeHover: '#B8E600',
@@ -43,185 +45,200 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-[#0A0A0A] text-white font-sans antialiased min-h-screen flex flex-col selection:bg-electricLime selection:text-black">
+<body class="bg-[#0A0A0A] text-white font-sans antialiased min-h-screen flex flex-col relative overflow-x-hidden selection:bg-electricLime selection:text-black">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#222222] sticky top-0 z-40 px-6 py-3.5">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            
-            <!-- Logo & Brand Badge -->
-            <div class="flex items-center gap-3">
-                <!-- Avatar Pill like 'AC' in image -->
-                <div class="w-8 h-8 rounded-full bg-electricLime text-black font-extrabold flex items-center justify-center text-xs tracking-tight shadow-[0_0_15px_rgba(204,255,0,0.3)]">
-                    NF
+    <!-- 3D Interactive WebGL Canvas (Background Neural Matrix) -->
+    <canvas id="webgl-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- Content Wrapper with 3D Perspective -->
+    <div class="relative z-10 flex flex-col min-h-screen perspective-[1200px]">
+
+        <!-- Top Navigation Bar (3D Glassmorphism) -->
+        <header class="bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-[#222222]/80 sticky top-0 z-50 px-6 py-3.5 transition-all">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                
+                <!-- Logo & 3D Avatar Pill -->
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-electricLime text-black font-extrabold flex items-center justify-center text-xs tracking-tight shadow-[0_0_20px_rgba(204,255,0,0.4)] transform hover:rotate-12 transition duration-300">
+                        NF
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-display font-extrabold text-base tracking-tight text-white">NIFTY 50</span>
+                            <span class="text-xs text-mutedText">•</span>
+                            <span class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#161616]/90 border border-[#2A2A2A] text-[10px] text-white font-medium shadow-xs">
+                                <span class="w-2 h-2 rounded-full bg-electricLime animate-pulse"></span>
+                                <span>3D Neural Feed</span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div>
+
+                <!-- Center Live Price Bar -->
+                <div class="flex items-center gap-3 font-mono">
+                    <span class="text-xs text-mutedText uppercase tracking-wider font-sans">Spot</span>
+                    <span id="header-price" class="text-lg font-bold text-white transition-colors duration-200">₹--</span>
+                    <span id="header-change" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-[#1C1C1C] text-electricLime border border-[#2E2E2E]">--</span>
+                </div>
+
+                <!-- Right Controls -->
+                <div class="flex items-center gap-2.5">
+                    <!-- Interval Switcher -->
+                    <div class="flex items-center bg-[#141414] border border-[#282828] p-0.5 rounded-full text-xs font-semibold">
+                        <button id="btn-interval-5m" class="px-3 py-1 rounded-full bg-electricLime text-black font-bold shadow-xs transition">5m</button>
+                        <button id="btn-interval-1d" class="px-3 py-1 rounded-full text-mutedText hover:text-white transition">1D</button>
+                    </div>
+
+                    <!-- 3D Scene Controls Toggle (Orbit / Particles) -->
+                    <button id="btn-toggle-3d" class="px-3 py-1.5 rounded-full bg-[#181818] hover:bg-[#222222] border border-[#333333] text-white text-xs font-medium transition flex items-center gap-1.5" title="Toggle 3D Wave Dynamics">
+                        <i data-lucide="box" class="w-3.5 h-3.5 text-electricLime"></i>
+                        <span>3D View</span>
+                    </button>
+
+                    <!-- Export CSV Button (Neon Pill) -->
+                    <button id="btn-export-csv" class="px-4 py-1.5 rounded-full bg-electricLime hover:bg-electricLimeHover text-black text-xs font-bold transition flex items-center gap-1.5 shadow-[0_0_25px_rgba(204,255,0,0.3)]">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-black"></i>
+                        <span>Export</span>
+                    </button>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+            <!-- Hero Banner: "Designing experiences that matter." 3D Style -->
+            <section class="relative pt-4 pb-2 z-10">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#141414]/80 backdrop-blur-md border border-[#282828] text-xs text-mutedText font-medium shadow-xs">
+                        <span class="w-2 h-2 rounded-full bg-electricLime shadow-[0_0_8px_#CCFF00]"></span>
+                        <span>Experiment 13 (CO4) • Real-Time 3D Neural Architecture</span>
+                    </div>
+                    
+                    <h1 class="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl text-white tracking-tight leading-[1.08]">
+                        Predicting horizons <br class="hidden sm:inline">
+                        that <span class="hero-outline">matter.</span>
+                    </h1>
+                    
+                    <p class="text-xs sm:text-sm text-mutedText max-w-xl leading-relaxed pt-1">
+                        Multidimensional time series forecasting in 3D space. Continuous real-time updates projecting future High & Low boundaries.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 6 AI Prediction Cards Section (With 3D Tilt Effect) -->
+            <section class="space-y-3 z-10">
+                <div class="flex items-center justify-between text-xs text-mutedText px-1 font-medium">
+                    <span class="text-white font-semibold flex items-center gap-2">
+                        <span>Neural Predictions Horizon</span>
+                        <span class="text-[10px] text-electricLime font-mono bg-[#161616] px-2 py-0.5 rounded-full border border-[#262626]">3D Tilt Enabled</span>
+                    </span>
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-electricLime shadow-[0_0_8px_#CCFF00]"></span> Pred High</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#FFFFFF]"></span> Target Close</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-coralRed shadow-[0_0_8px_#FF3366]"></span> Pred Low</span>
+                    </div>
+                </div>
+
+                <!-- 3D Cards Grid -->
+                <div id="forecast-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <!-- Populated live with 3D tilt hooks -->
+                </div>
+            </section>
+
+            <!-- 3D Elevated Main Chart Panel -->
+            <section class="chart-3d-panel bg-[#111111]/90 backdrop-blur-xl rounded-2xl border border-[#242424] shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-10 transition-transform duration-300">
+                
+                <!-- Chart Bar Header -->
+                <div class="px-5 py-3.5 border-b border-[#202020] flex flex-wrap items-center justify-between gap-3 text-xs bg-[#141414]/80">
+                    <div class="flex items-center gap-4 font-mono text-mutedText">
+                        <span class="font-sans font-bold text-white text-sm" id="chart-title">NIFTY 50 • 5m</span>
+                        <span>O: <b id="bar-open" class="text-white">--</b></span>
+                        <span>H: <b id="bar-high" class="text-electricLime">--</b></span>
+                        <span>L: <b id="bar-low" class="text-coralRed">--</b></span>
+                        <span>C: <b id="bar-close" class="text-white">--</b></span>
+                    </div>
+
+                    <!-- Overlays & Range Buttons -->
+                    <div class="flex items-center gap-4 text-xs">
+                        <label class="flex items-center gap-1.5 cursor-pointer text-mutedText hover:text-white transition">
+                            <input type="checkbox" id="chk-sma" checked class="rounded bg-[#1A1A1A] border-[#333] text-electricLime focus:ring-0 accent-electricLime">
+                            <span>SMA 20</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-mutedText hover:text-white transition">
+                            <input type="checkbox" id="chk-envelope" checked class="rounded bg-[#1A1A1A] border-[#333] text-electricLime focus:ring-0 accent-electricLime">
+                            <span>Forecast Channel</span>
+                        </label>
+                        <div class="h-3 w-px bg-[#262626]"></div>
+                        <div class="flex items-center gap-1" id="range-buttons">
+                            <button class="btn-range px-2.5 py-1 rounded-md text-mutedText hover:text-white transition" data-bars="75">1D</button>
+                            <button class="btn-range px-2.5 py-1 rounded-md bg-[#222222] text-electricLime font-bold active" data-bars="150">2D</button>
+                            <button class="btn-range px-2.5 py-1 rounded-md text-mutedText hover:text-white transition" data-bars="300">4D</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canvas Mount -->
+                <div class="relative w-full h-[480px] sm:h-[540px] bg-[#0A0A0A]/95">
+                    <div id="chart-mount" class="w-full h-full"></div>
+
+                    <!-- Live Stream Floating Badge -->
+                    <div class="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-2 bg-[#141414]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#282828] text-[10px] font-mono text-mutedText shadow-lg">
+                        <span class="w-1.5 h-1.5 rounded-full bg-electricLime animate-ping"></span>
+                        <span>3D Live Tick: <b id="tick-counter" class="text-white">0</b></span>
+                    </div>
+
+                    <!-- Loader -->
+                    <div id="chart-loader" class="absolute inset-0 bg-[#0A0A0A]/85 backdrop-blur-xs flex items-center justify-center z-20 transition-opacity">
+                        <div class="w-7 h-7 border-2 border-electricLime border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                </div>
+
+                <!-- Chart Footer Meta -->
+                <div class="px-5 py-2.5 border-t border-[#1F1F1F] bg-[#0E0E0E]/90 flex items-center justify-between text-[11px] text-mutedText font-mono">
                     <div class="flex items-center gap-2">
-                        <span class="font-display font-extrabold text-base tracking-tight text-white">NIFTY 50</span>
-                        <span class="text-xs text-mutedText">•</span>
-                        <!-- Status Indicator like 'Available for new projects' in image -->
-                        <span class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#181818] border border-[#2A2A2A] text-[10px] text-white font-medium">
-                            <span class="w-2 h-2 rounded-full bg-electricLime animate-pulse"></span>
-                            <span id="live-indicator-text">Live Streaming</span>
-                        </span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-electricLime"></span>
+                        <span>NSE India • 3D Neural Projection Engine</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span>Lookback: <b>60 Steps</b></span>
+                        <span id="live-time">--:--:-- IST</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Center Live Price Bar -->
-            <div class="flex items-center gap-3 font-mono">
-                <span class="text-xs text-mutedText uppercase tracking-wider font-sans">Spot</span>
-                <span id="header-price" class="text-lg font-bold text-white transition-colors duration-200">₹--</span>
-                <span id="header-change" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-[#1C1C1C] text-electricLime border border-[#2E2E2E]">--</span>
-            </div>
+            </section>
 
-            <!-- Right Controls -->
-            <div class="flex items-center gap-2.5">
-                <!-- Interval Toggle -->
-                <div class="flex items-center bg-[#161616] border border-[#262626] p-0.5 rounded-full text-xs font-semibold">
-                    <button id="btn-interval-5m" class="px-3 py-1 rounded-full bg-electricLime text-black font-bold shadow-xs transition">5m</button>
-                    <button id="btn-interval-1d" class="px-3 py-1 rounded-full text-mutedText hover:text-white transition">1D</button>
+            <!-- 3D Metrics Row -->
+            <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs z-10">
+                <div class="card-3d bg-[#121212]/90 backdrop-blur-md p-4 rounded-xl border border-[#242424] shadow-md transition-all">
+                    <div class="text-mutedText text-[11px]">Peak Horizon High</div>
+                    <div id="stat-high" class="font-mono font-bold text-electricLime text-sm mt-1">--</div>
                 </div>
-
-                <!-- Export CSV Button (Matching 'Hire me' electric lime pill in image) -->
-                <button id="btn-export-csv" class="px-4 py-1.5 rounded-full bg-electricLime hover:bg-electricLimeHover text-black text-xs font-bold transition flex items-center gap-1.5 shadow-[0_0_20px_rgba(204,255,0,0.25)]">
-                    <i data-lucide="download" class="w-3.5 h-3.5 text-black"></i>
-                    <span>Export</span>
-                </button>
-            </div>
-
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
-
-        <!-- Hero Banner: "Designing experiences that matter." Aesthetic -->
-        <section class="relative pt-4 pb-2">
-            <div class="space-y-2">
-                <div class="flex items-center gap-2 text-xs text-mutedText font-medium">
-                    <span class="w-2 h-2 rounded-full bg-electricLime"></span>
-                    <span>Experiment 13 (CO4) • Deep Stacked LSTM Architecture</span>
+                <div class="card-3d bg-[#121212]/90 backdrop-blur-md p-4 rounded-xl border border-[#242424] shadow-md transition-all">
+                    <div class="text-mutedText text-[11px]">Lowest Horizon Low</div>
+                    <div id="stat-low" class="font-mono font-bold text-coralRed text-sm mt-1">--</div>
                 </div>
-                
-                <h1 class="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl text-white tracking-tight leading-[1.08]">
-                    Predicting horizons <br class="hidden sm:inline">
-                    that <span class="hero-outline">matter.</span>
-                </h1>
-                
-                <p class="text-xs sm:text-sm text-mutedText max-w-xl leading-relaxed pt-1">
-                    Continuous real-time neural time series forecasting. Multi-horizon High and Low boundaries projecting the next 6 market intervals.
-                </p>
-            </div>
-        </section>
-
-        <!-- 6 AI Prediction Cards Section -->
-        <section class="space-y-3">
-            <div class="flex items-center justify-between text-xs text-mutedText px-1 font-medium">
-                <span class="text-white font-semibold">Neural Predictions Horizon</span>
-                <div class="flex items-center gap-4">
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-electricLime"></span> Pred High</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white"></span> Target Close</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-coralRed"></span> Pred Low</span>
+                <div class="card-3d bg-[#121212]/90 backdrop-blur-md p-4 rounded-xl border border-[#242424] shadow-md transition-all">
+                    <div class="text-mutedText text-[11px]">Average Spread</div>
+                    <div id="stat-spread" class="font-mono font-bold text-white text-sm mt-1">--</div>
                 </div>
-            </div>
-
-            <!-- Cards Container -->
-            <div id="forecast-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <!-- Dynamically injected and updated live -->
-            </div>
-        </section>
-
-        <!-- Main Chart Card -->
-        <section class="bg-[#121212] rounded-2xl border border-[#222222] shadow-2xl overflow-hidden flex flex-col">
-            
-            <!-- Chart Bar Header -->
-            <div class="px-5 py-3.5 border-b border-[#202020] flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div class="flex items-center gap-4 font-mono text-mutedText">
-                    <span class="font-sans font-bold text-white text-sm" id="chart-title">NIFTY 50 • 5m</span>
-                    <span>O: <b id="bar-open" class="text-white">--</b></span>
-                    <span>H: <b id="bar-high" class="text-electricLime">--</b></span>
-                    <span>L: <b id="bar-low" class="text-coralRed">--</b></span>
-                    <span>C: <b id="bar-close" class="text-white">--</b></span>
+                <div class="card-3d bg-[#121212]/90 backdrop-blur-md p-4 rounded-xl border border-[#242424] shadow-md transition-all">
+                    <div class="text-mutedText text-[11px]">Model Accuracy Error</div>
+                    <div class="font-mono font-bold text-electricLime text-sm mt-1">0.05% <span class="text-mutedText font-normal text-xs">(R²: 0.9588)</span></div>
                 </div>
+            </section>
 
-                <!-- Overlays & Range Buttons -->
-                <div class="flex items-center gap-4 text-xs">
-                    <label class="flex items-center gap-1.5 cursor-pointer text-mutedText hover:text-white transition">
-                        <input type="checkbox" id="chk-sma" checked class="rounded bg-[#1A1A1A] border-[#333] text-electricLime focus:ring-0 accent-electricLime">
-                        <span>SMA 20</span>
-                    </label>
-                    <label class="flex items-center gap-1.5 cursor-pointer text-mutedText hover:text-white transition">
-                        <input type="checkbox" id="chk-envelope" checked class="rounded bg-[#1A1A1A] border-[#333] text-electricLime focus:ring-0 accent-electricLime">
-                        <span>Forecast Channel</span>
-                    </label>
-                    <div class="h-3 w-px bg-[#262626]"></div>
-                    <div class="flex items-center gap-1" id="range-buttons">
-                        <button class="btn-range px-2.5 py-1 rounded-md text-mutedText hover:text-white transition" data-bars="75">1D</button>
-                        <button class="btn-range px-2.5 py-1 rounded-md bg-[#222222] text-electricLime font-bold active" data-bars="150">2D</button>
-                        <button class="btn-range px-2.5 py-1 rounded-md text-mutedText hover:text-white transition" data-bars="300">4D</button>
-                    </div>
-                </div>
-            </div>
+        </main>
 
-            <!-- Canvas Container -->
-            <div class="relative w-full h-[480px] sm:h-[540px] bg-[#0A0A0A]">
-                <div id="chart-mount" class="w-full h-full"></div>
+        <!-- Footer -->
+        <footer class="mt-auto border-t border-[#1C1C1C] bg-[#0A0A0A]/90 backdrop-blur-md py-4 px-6 text-center text-xs text-mutedText z-10">
+            NIFTY-50 AI Forecaster • 3D Interactive WebGL Architecture • Matte Obsidian & Electric Lime (#CCFF00) • Exp 13 (CO4)
+        </footer>
 
-                <!-- Live Stream Floating Badge -->
-                <div class="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-2 bg-[#141414]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#262626] text-[10px] font-mono text-mutedText">
-                    <span class="w-1.5 h-1.5 rounded-full bg-electricLime animate-ping"></span>
-                    <span>Tick: <b id="tick-counter" class="text-white">0</b></span>
-                </div>
+    </div>
 
-                <!-- Loader -->
-                <div id="chart-loader" class="absolute inset-0 bg-[#0A0A0A]/80 backdrop-blur-xs flex items-center justify-center z-20 transition-opacity">
-                    <div class="w-7 h-7 border-2 border-electricLime border-t-transparent rounded-full animate-spin"></div>
-                </div>
-            </div>
-
-            <!-- Chart Footer Meta -->
-            <div class="px-5 py-2.5 border-t border-[#1F1F1F] bg-[#0E0E0E] flex items-center justify-between text-[11px] text-mutedText font-mono">
-                <div class="flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-electricLime"></span>
-                    <span>NSE India • Relative Offset Representation (Huber Loss)</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span>Lookback: <b>60 Steps</b></span>
-                    <span id="live-time">--:--:-- IST</span>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Metrics Row -->
-        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div class="bg-[#121212] p-4 rounded-xl border border-[#222222]">
-                <div class="text-mutedText text-[11px]">Peak Horizon High</div>
-                <div id="stat-high" class="font-mono font-bold text-electricLime text-sm mt-1">--</div>
-            </div>
-            <div class="bg-[#121212] p-4 rounded-xl border border-[#222222]">
-                <div class="text-mutedText text-[11px]">Lowest Horizon Low</div>
-                <div id="stat-low" class="font-mono font-bold text-coralRed text-sm mt-1">--</div>
-            </div>
-            <div class="bg-[#121212] p-4 rounded-xl border border-[#222222]">
-                <div class="text-mutedText text-[11px]">Average Spread</div>
-                <div id="stat-spread" class="font-mono font-bold text-white text-sm mt-1">--</div>
-            </div>
-            <div class="bg-[#121212] p-4 rounded-xl border border-[#222222]">
-                <div class="text-mutedText text-[11px]">Model Accuracy Error</div>
-                <div class="font-mono font-bold text-electricLime text-sm mt-1">0.05% <span class="text-mutedText font-normal text-xs">(R²: 0.9588)</span></div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="mt-auto border-t border-[#1C1C1C] bg-[#0A0A0A] py-4 px-6 text-center text-xs text-mutedText">
-        NIFTY-50 AI Forecaster • Matte Obsidian & Electric Lime Theme • Exp 13 (CO4)
-    </footer>
-
-    <!-- App Logic -->
+    <!-- App Logic & 3D WebGL Script -->
     <script src="/static/app.js"></script>
     <script>
         lucide.createIcons();

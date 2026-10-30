@@ -1,8 +1,8 @@
-/* Matte Obsidian & Electric Lime Theme (Inspired by User Screenshot) */
+/* Matte Obsidian, Electric Lime & 3D WebGL Dimensions */
 
 :root {
     --bg-dark: #0A0A0A;
-    --card-dark: #141414;
+    --card-dark: #121212;
     --card-border: #242424;
     --lime: #CCFF00;
     --coral: #FF3366;
@@ -21,12 +21,97 @@ body {
     color: transparent;
     font-style: italic;
     display: inline-block;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateZ(30px);
 }
 
 .hero-outline:hover {
     color: var(--lime);
-    text-shadow: 0 0 25px rgba(204, 255, 0, 0.4);
+    text-shadow: 0 0 30px rgba(204, 255, 0, 0.5);
+    transform: translateZ(40px) scale(1.03);
+}
+
+/* 3D Elevated Main Chart Panel */
+.chart-3d-panel {
+    transform-style: preserve-3d;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px -10px rgba(204, 255, 0, 0.08);
+    transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.chart-3d-panel:hover {
+    border-color: rgba(204, 255, 0, 0.35);
+    box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.95), 0 0 50px -5px rgba(204, 255, 0, 0.15);
+}
+
+/* Interactive 3D Tilt Cards */
+.tilt-card {
+    position: relative;
+    background: #141414;
+    border: 1px solid #242424;
+    border-radius: 16px;
+    padding: 15px;
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out, border-color 0.25s ease, box-shadow 0.25s ease;
+    will-change: transform;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.tilt-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle 120px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(204, 255, 0, 0.12), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: 16px;
+}
+
+.tilt-card:hover::before {
+    opacity: 1;
+}
+
+.tilt-card:hover {
+    border-color: var(--lime);
+    box-shadow: 0 15px 35px -5px rgba(204, 255, 0, 0.15), 0 0 20px -2px rgba(0, 0, 0, 0.8);
+}
+
+.tilt-card-content {
+    transform: translateZ(20px);
+    transition: transform 0.15s ease-out;
+}
+
+/* Badges */
+.badge-lime {
+    background-color: rgba(204, 255, 0, 0.12);
+    color: var(--lime);
+    border: 1px solid rgba(204, 255, 0, 0.3);
+}
+
+.badge-coral {
+    background-color: rgba(255, 51, 102, 0.12);
+    color: var(--coral);
+    border: 1px solid rgba(255, 51, 102, 0.3);
+}
+
+/* Live Tick Glow Keyframes */
+@keyframes tickGlowUp {
+    0% { background-color: rgba(204, 255, 0, 0.3); border-color: var(--lime); transform: scale(1.02); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+@keyframes tickGlowDown {
+    0% { background-color: rgba(255, 51, 102, 0.3); border-color: var(--coral); transform: scale(1.02); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+.tick-glow-up {
+    animation: tickGlowUp 0.6s ease-out;
+}
+
+.tick-glow-down {
+    animation: tickGlowDown 0.6s ease-out;
 }
 
 /* Minimalist Dark Scrollbars */
@@ -43,54 +128,4 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #3A3A3A;
-}
-
-/* Prediction Cards */
-.dark-prediction-card {
-    background: #141414;
-    border: 1px solid #242424;
-    border-radius: 14px;
-    padding: 14px;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.dark-prediction-card:hover {
-    border-color: var(--lime);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px -4px rgba(204, 255, 0, 0.12);
-}
-
-/* Badges */
-.badge-lime {
-    background-color: rgba(204, 255, 0, 0.12);
-    color: var(--lime);
-    border: 1px solid rgba(204, 255, 0, 0.25);
-}
-
-.badge-coral {
-    background-color: rgba(255, 51, 102, 0.12);
-    color: var(--coral);
-    border: 1px solid rgba(255, 51, 102, 0.25);
-}
-
-/* Live Tick Glow Animations */
-@keyframes tickGlowUp {
-    0% { background-color: rgba(204, 255, 0, 0.25); border-color: var(--lime); }
-    100% { background-color: transparent; }
-}
-
-@keyframes tickGlowDown {
-    0% { background-color: rgba(255, 51, 102, 0.25); border-color: var(--coral); }
-    100% { background-color: transparent; }
-}
-
-.tick-glow-up {
-    animation: tickGlowUp 0.6s ease-out;
-}
-
-.tick-glow-down {
-    animation: tickGlowDown 0.6s ease-out;
 }
