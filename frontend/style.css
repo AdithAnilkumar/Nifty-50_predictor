@@ -1,12 +1,35 @@
-/* Minimalist Clean Theme */
+/* Matte Obsidian & Electric Lime Theme (Inspired by User Screenshot) */
 
-body {
-    background-color: #FAFAFA;
-    color: #0F172A;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+:root {
+    --bg-dark: #0A0A0A;
+    --card-dark: #141414;
+    --card-border: #242424;
+    --lime: #CCFF00;
+    --coral: #FF3366;
+    --muted: #8E8E93;
 }
 
-/* Minimal Scrollbars */
+body {
+    background-color: var(--bg-dark);
+    color: #FFFFFF;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+}
+
+/* Hero Outline Text (Matching "that matter." from screenshot) */
+.hero-outline {
+    -webkit-text-stroke: 1.6px var(--lime);
+    color: transparent;
+    font-style: italic;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.hero-outline:hover {
+    color: var(--lime);
+    text-shadow: 0 0 25px rgba(204, 255, 0, 0.4);
+}
+
+/* Minimalist Dark Scrollbars */
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -15,56 +38,59 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #E2E8F0;
+    background: #2A2A2A;
     border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #CBD5E1;
+    background: #3A3A3A;
 }
 
-/* Minimalist Prediction Cards */
-.min-card {
-    background: #FFFFFF;
-    border: 1px solid #E5E7EB;
-    border-radius: 10px;
-    padding: 12px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+/* Prediction Cards */
+.dark-prediction-card {
+    background: #141414;
+    border: 1px solid #242424;
+    border-radius: 14px;
+    padding: 14px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.min-card:hover {
-    border-color: #94A3B8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.dark-prediction-card:hover {
+    border-color: var(--lime);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(204, 255, 0, 0.12);
 }
 
-/* Minimalist Badges */
-.badge-up {
-    background-color: #ECFDF5;
-    color: #059669;
+/* Badges */
+.badge-lime {
+    background-color: rgba(204, 255, 0, 0.12);
+    color: var(--lime);
+    border: 1px solid rgba(204, 255, 0, 0.25);
 }
 
-.badge-down {
-    background-color: #FFF1F2;
-    color: #E11D48;
+.badge-coral {
+    background-color: rgba(255, 51, 102, 0.12);
+    color: var(--coral);
+    border: 1px solid rgba(255, 51, 102, 0.25);
 }
 
-/* Live Tick Flashes */
-@keyframes tickUp {
-    0% { background-color: #D1FAE5; }
+/* Live Tick Glow Animations */
+@keyframes tickGlowUp {
+    0% { background-color: rgba(204, 255, 0, 0.25); border-color: var(--lime); }
     100% { background-color: transparent; }
 }
 
-@keyframes tickDown {
-    0% { background-color: #FFE4E6; }
+@keyframes tickGlowDown {
+    0% { background-color: rgba(255, 51, 102, 0.25); border-color: var(--coral); }
     100% { background-color: transparent; }
 }
 
-.tick-up {
-    animation: tickUp 0.6s ease-out;
+.tick-glow-up {
+    animation: tickGlowUp 0.6s ease-out;
 }
 
-.tick-down {
-    animation: tickDown 0.6s ease-out;
+.tick-glow-down {
+    animation: tickGlowDown 0.6s ease-out;
 }

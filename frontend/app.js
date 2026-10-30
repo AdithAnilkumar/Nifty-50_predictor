@@ -1,6 +1,7 @@
 /**
- * NIFTY-50 Minimalist Clean Forecaster
- * Clean Architecture, Lightweight Charts v4.2.0, Real-Time Live Streaming (2s)
+ * NIFTY-50 Matte Obsidian & Electric Lime Forecaster
+ * Syne Display Font, Electric Lime (#CCFF00) & Coral Red (#FF3366)
+ * Continuous Real-Time Live Streaming (2s Ticks)
  */
 
 // Application State
@@ -10,13 +11,14 @@ const state = {
     horizon: 6,
     chartData: null,
     isLive: true,
+    tickCount: 0,
     overlays: {
         sma: true,
         envelope: true
     }
 };
 
-// Chart & Series Handles
+// Chart References
 let chart = null;
 let candleSeries = null;
 let volumeSeries = null;
@@ -25,14 +27,15 @@ let forecastCandleSeries = null;
 let forecastHighLine = null;
 let forecastLowLine = null;
 let forecastCloseLine = null;
-let liveTimer = null;
+let liveIntervalId = null;
 
 // DOM Elements
 const chartMount = document.getElementById('chart-mount');
 const chartLoader = document.getElementById('chart-loader');
-const livePrice = document.getElementById('live-price');
-const liveChange = document.getElementById('live-change');
+const headerPrice = document.getElementById('header-price');
+const headerChange = document.getElementById('header-change');
 const liveTime = document.getElementById('live-time');
+const tickCounter = document.getElementById('tick-counter');
 const chartTitle = document.getElementById('chart-title');
 
 // Header OHLC
@@ -64,11 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initChartEngine();
     setupEventHandlers();
     loadHistoricalData().then(() => {
-        startLivePolling();
+        startLiveStreaming();
     });
 });
 
-// Initialize Clean Minimalist Canvas
+// Initialize Custom Canvas with Matte Obsidian & Electric Lime Palette
 function initChartEngine() {
     if (!chartMount) return;
     chartMount.innerHTML = '';
@@ -77,38 +80,40 @@ function initChartEngine() {
         width: chartMount.clientWidth,
         height: chartMount.clientHeight,
         layout: {
-            background: { type: 'solid', color: '#FFFFFF' },
-            textColor: '#64748B',
-            fontFamily: '"Inter", -apple-system, sans-serif',
+            background: { type: 'solid', color: '#0A0A0A' }, // Deep Matte Obsidian
+            textColor: '#8E8E93',
+            fontFamily: '"Plus Jakarta Sans", sans-serif',
             fontSize: 11
         },
         grid: {
-            vertLines: { color: '#F1F5F9' },
-            horzLines: { color: '#F1F5F9' }
+            vertLines: { color: '#161616' },
+            horzLines: { color: '#161616' }
         },
         crosshair: {
             mode: LightweightCharts.CrosshairMode.Normal,
             vertLine: {
-                color: '#94A3B8',
+                color: '#333333',
                 width: 1,
                 style: LightweightCharts.LineStyle.Dashed,
-                labelBackgroundColor: '#0F172A'
+                labelBackgroundColor: '#CCFF00',
+                labelTextColor: '#000000'
             },
             horzLine: {
-                color: '#94A3B8',
+                color: '#333333',
                 width: 1,
                 style: LightweightCharts.LineStyle.Dashed,
-                labelBackgroundColor: '#0F172A'
+                labelBackgroundColor: '#CCFF00',
+                labelTextColor: '#000000'
             }
         },
         rightPriceScale: {
-            borderColor: '#E2E8F0',
+            borderColor: '#222222',
             visible: true,
             autoScale: true,
-            scaleMargins: { top: 0.08, bottom: 0.16 }
+            scaleMargins: { top: 0.08, bottom: 0.18 }
         },
         timeScale: {
-            borderColor: '#E2E8F0',
+            borderColor: '#222222',
             timeVisible: true,
             secondsVisible: false,
             fixLeftEdge: true,
@@ -129,7 +134,7 @@ function initChartEngine() {
 
     // Volume Overlay (Bottom 15%)
     volumeSeries = chart.addHistogramSeries({
-        color: '#10B981',
+        color: '#CCFF00',
         priceFormat: { type: 'volume' },
         priceScaleId: 'volume',
         scaleMargins: { top: 0.85, bottom: 0 }
@@ -138,57 +143,57 @@ function initChartEngine() {
         scaleMargins: { top: 0.85, bottom: 0 }
     });
 
-    // Candlesticks: Emerald (#10B981) Up, Rose (#F43F5E) Down
+    // Candlesticks: Electric Lime (#CCFF00) Up, Coral Red (#FF3366) Down
     candleSeries = chart.addCandlestickSeries({
-        upColor: '#10B981',
-        downColor: '#F43F5E',
-        borderUpColor: '#10B981',
-        borderDownColor: '#F43F5E',
-        wickUpColor: '#10B981',
-        wickDownColor: '#F43F5E'
+        upColor: '#CCFF00',
+        downColor: '#FF3366',
+        borderUpColor: '#CCFF00',
+        borderDownColor: '#FF3366',
+        wickUpColor: '#CCFF00',
+        wickDownColor: '#FF3366'
     });
 
     // SMA 20 Overlay (Slate Gray)
     smaSeries = chart.addLineSeries({
-        color: '#64748B',
+        color: '#6E6E73',
         lineWidth: 1.5,
         title: 'SMA 20',
         crosshairMarkerVisible: false
     });
 
-    // AI Forecast Predicted Candles (Modern Blue #2563EB)
+    // AI Forecast Predicted Candles (Electric Lime Glow)
     forecastCandleSeries = chart.addCandlestickSeries({
-        upColor: '#2563EB',
-        downColor: '#6366F1',
-        borderUpColor: '#1D4ED8',
-        borderDownColor: '#4338CA',
-        wickUpColor: '#2563EB',
-        wickDownColor: '#6366F1',
+        upColor: '#CCFF00',
+        downColor: '#8E8E93',
+        borderUpColor: '#FFFFFF',
+        borderDownColor: '#FF3366',
+        wickUpColor: '#CCFF00',
+        wickDownColor: '#FF3366',
         priceLineVisible: false
     });
 
-    // Forecast Upper Boundary (Emerald)
+    // Forecast Upper Boundary (Electric Lime)
     forecastHighLine = chart.addLineSeries({
-        color: '#10B981',
+        color: '#CCFF00',
         lineWidth: 1.5,
         lineStyle: LightweightCharts.LineStyle.Dashed,
-        title: 'High Bound'
+        title: 'Pred High'
     });
 
-    // Forecast Lower Boundary (Rose)
+    // Forecast Lower Boundary (Coral Red)
     forecastLowLine = chart.addLineSeries({
-        color: '#F43F5E',
+        color: '#FF3366',
         lineWidth: 1.5,
         lineStyle: LightweightCharts.LineStyle.Dashed,
-        title: 'Low Bound'
+        title: 'Pred Low'
     });
 
-    // Forecast Close Path (Blue)
+    // Forecast Close Path (Pure White)
     forecastCloseLine = chart.addLineSeries({
-        color: '#2563EB',
+        color: '#FFFFFF',
         lineWidth: 1.5,
         lineStyle: LightweightCharts.LineStyle.Dotted,
-        title: 'Expected Close'
+        title: 'Target Close'
     });
 
     // Crosshair Sync
@@ -203,7 +208,7 @@ function initChartEngine() {
         }
     });
 
-    // Window Resize Observer
+    // Resize Observer
     const ro = new ResizeObserver(entries => {
         if (!entries || !entries.length || !chart) return;
         chart.applyOptions({
@@ -214,7 +219,7 @@ function initChartEngine() {
     ro.observe(chartMount);
 }
 
-// Initial Data Load
+// Initial Data Fetch
 async function loadHistoricalData() {
     if (chartLoader) chartLoader.classList.remove('opacity-0', 'pointer-events-none');
     try {
@@ -229,7 +234,7 @@ async function loadHistoricalData() {
         const customVolBars = data.volume_bars.map(v => ({
             time: v.time,
             value: v.value,
-            color: v.color.includes('089981') ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.4)'
+            color: v.color.includes('089981') ? 'rgba(204, 255, 0, 0.45)' : 'rgba(255, 51, 102, 0.4)'
         }));
         volumeSeries.setData(customVolBars);
 
@@ -250,9 +255,9 @@ async function loadHistoricalData() {
                 {
                     time: data.transition_time,
                     position: 'aboveBar',
-                    color: '#2563EB',
+                    color: '#CCFF00',
                     shape: 'arrowDown',
-                    text: 'Forecast ➔'
+                    text: 'Neural Projection ➔'
                 }
             ]);
         }
@@ -270,21 +275,24 @@ async function loadHistoricalData() {
     }
 }
 
-// Real-Time Live Polling Engine (Every 2 seconds)
-function startLivePolling() {
-    if (liveTimer) clearInterval(liveTimer);
-    liveTimer = setInterval(async () => {
+// Real-Time Live Streaming (2s Polling)
+function startLiveStreaming() {
+    if (liveIntervalId) clearInterval(liveIntervalId);
+    liveIntervalId = setInterval(async () => {
         if (!state.isLive) return;
         await streamTick();
     }, 2000);
 }
 
-// Fetch & Apply Single Live Tick
+// Single Live Tick Stream
 async function streamTick() {
     try {
         const res = await fetch(`/api/live-tick?interval=${state.interval}`);
         if (!res.ok) return;
         const tick = await res.json();
+
+        state.tickCount++;
+        if (tickCounter) tickCounter.textContent = state.tickCount.toString();
 
         // 1. Live Candle Canvas Update
         if (candleSeries && tick.candle) {
@@ -293,10 +301,11 @@ async function streamTick() {
 
         // 2. Live Volume Update
         if (volumeSeries && tick.volume) {
-            volumeSeries.update(tick.volume);
+            const volColor = tick.candle.close >= tick.candle.open ? 'rgba(204, 255, 0, 0.45)' : 'rgba(255, 51, 102, 0.4)';
+            volumeSeries.update({ ...tick.volume, color: volColor });
         }
 
-        // 3. Dynamic Forecast Line & Candle Updates
+        // 3. Dynamic Forecast Updates
         if (tick.forecast_candles && forecastCandleSeries) {
             forecastCandleSeries.setData(tick.forecast_candles);
             if (forecastHighLine) forecastHighLine.setData(tick.forecast_high_line || []);
@@ -307,20 +316,20 @@ async function streamTick() {
             updateStatistics(tick.forecast_candles);
         }
 
-        // 4. Update Header Live Price
-        if (livePrice) {
-            livePrice.textContent = formatPrice(tick.tick_price);
-            livePrice.classList.remove('tick-up', 'tick-down');
-            void livePrice.offsetWidth;
-            livePrice.classList.add(tick.is_uptick ? 'tick-up' : 'tick-down');
+        // 4. Update Header Live Price & Animate Glow
+        if (headerPrice) {
+            headerPrice.textContent = formatPrice(tick.tick_price);
+            headerPrice.classList.remove('tick-glow-up', 'tick-glow-down');
+            void headerPrice.offsetWidth;
+            headerPrice.classList.add(tick.is_uptick ? 'tick-glow-up' : 'tick-glow-down');
         }
 
-        if (liveChange) {
+        if (headerChange) {
             const sign = tick.change_pts >= 0 ? '+' : '';
-            liveChange.textContent = `${sign}₹${formatRaw(tick.change_pts)} (${sign}${tick.change_pct.toFixed(2)}%)`;
-            liveChange.className = tick.change_pts >= 0 ?
-                'text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700' :
-                'text-xs font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700';
+            headerChange.textContent = `${sign}₹${formatRaw(tick.change_pts)} (${sign}${tick.change_pct.toFixed(2)}%)`;
+            headerChange.className = tick.change_pts >= 0 ?
+                'text-xs font-semibold px-2 py-0.5 rounded-md bg-[#1C1C1C] text-electricLime border border-[#2E2E2E]' :
+                'text-xs font-semibold px-2 py-0.5 rounded-md bg-[#1C1C1C] text-coralRed border border-[#2E2E2E]';
         }
 
         if (liveTime && tick.timestamp) {
@@ -332,7 +341,7 @@ async function streamTick() {
         }
 
     } catch (e) {
-        console.warn("Live stream error:", e);
+        console.warn("Live stream tick error:", e);
     }
 }
 
@@ -348,45 +357,45 @@ function restoreCurrentCandleHeader() {
     if (!state.chartData || !state.chartData.candles || !state.chartData.candles.length) return;
     const last = state.chartData.candles[state.chartData.candles.length - 1];
     updateOHLCHeader(last.open, last.high, last.low, last.close);
-    if (livePrice) livePrice.textContent = formatPrice(last.close);
+    if (headerPrice) headerPrice.textContent = formatPrice(last.close);
 }
 
-// Render Initial Minimalist Cards
+// Initial Forecast Cards Render
 function renderForecastCards(forecasts) {
     if (!forecastCards || !forecasts) return;
     let html = '';
 
     forecasts.forEach((f, idx) => {
         const isUp = f.change_pct >= 0;
-        const badgeClass = isUp ? 'badge-up' : 'badge-down';
+        const badgeClass = isUp ? 'badge-lime' : 'badge-coral';
         const sign = isUp ? '+' : '';
 
         html += `
-            <div class="min-card" id="card-${idx}">
-                <div class="space-y-1.5">
+            <div class="dark-prediction-card" id="card-${idx}">
+                <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-semibold text-gray-900">${f.day || `Step +${idx+1}`}</span>
-                        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded ${badgeClass}">
+                        <span class="font-display font-bold text-white text-sm">${f.day || `Step +${idx+1}`}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeClass}">
                             ${sign}${f.change_pct.toFixed(2)}%
                         </span>
                     </div>
-                    <div class="text-[10px] text-gray-400 font-mono">${f.display_date}</div>
+                    <div class="text-[10px] text-mutedText font-mono">${f.display_date}</div>
 
-                    <div class="space-y-1 pt-1 font-mono text-xs">
+                    <div class="bg-[#181818] rounded-xl p-2.5 border border-[#262626] space-y-1 font-mono text-xs">
                         <div class="flex justify-between items-baseline">
-                            <span class="text-gray-400 text-[10px]">High</span>
-                            <span class="font-semibold text-emerald-600 card-high">₹${formatRaw(f.high)}</span>
+                            <span class="text-mutedText text-[10px] uppercase">Pred High</span>
+                            <span class="font-bold text-electricLime card-high">₹${formatRaw(f.high)}</span>
                         </div>
                         <div class="flex justify-between items-baseline">
-                            <span class="text-gray-400 text-[10px]">Low</span>
-                            <span class="font-semibold text-rose-600 card-low">₹${formatRaw(f.low)}</span>
+                            <span class="text-mutedText text-[10px] uppercase">Pred Low</span>
+                            <span class="font-bold text-coralRed card-low">₹${formatRaw(f.low)}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-mono">
-                    <span class="text-gray-400">Close</span>
-                    <span class="font-medium text-gray-900 card-close">₹${formatRaw(f.close)}</span>
+                <div class="mt-2.5 pt-2 border-t border-[#222222] flex items-center justify-between text-[11px] font-mono">
+                    <span class="text-mutedText">Close: <b class="text-white font-bold card-close">₹${formatRaw(f.close)}</b></span>
+                    <span class="text-electricLime font-bold card-spread text-[10px]">Δ ₹${formatRaw(f.spread)}</span>
                 </div>
             </div>
         `;
@@ -406,10 +415,12 @@ function updateForecastCardsLive(forecasts) {
         const elHigh = card.querySelector('.card-high');
         const elLow = card.querySelector('.card-low');
         const elClose = card.querySelector('.card-close');
+        const elSpread = card.querySelector('.card-spread');
 
         if (elHigh) elHigh.textContent = `₹${formatRaw(f.high)}`;
         if (elLow) elLow.textContent = `₹${formatRaw(f.low)}`;
         if (elClose) elClose.textContent = `₹${formatRaw(f.close)}`;
+        if (elSpread) elSpread.textContent = `Δ ₹${formatRaw(f.spread)}`;
     });
 }
 
@@ -436,8 +447,8 @@ function setupEventHandlers() {
             if (state.interval === '5m') return;
             state.interval = '5m';
             state.bars = 150;
-            btnInterval5m.className = 'px-2.5 py-1 rounded-md bg-white text-gray-900 shadow-xs font-semibold';
-            btnInterval1d.className = 'px-2.5 py-1 rounded-md text-gray-500 hover:text-gray-900 transition';
+            btnInterval5m.className = 'px-3 py-1 rounded-full bg-electricLime text-black font-bold shadow-xs transition';
+            btnInterval1d.className = 'px-3 py-1 rounded-full text-mutedText hover:text-white transition';
             if (chartTitle) chartTitle.textContent = 'NIFTY 50 • 5m';
             loadHistoricalData();
         });
@@ -446,8 +457,8 @@ function setupEventHandlers() {
             if (state.interval === '1d') return;
             state.interval = '1d';
             state.bars = 120;
-            btnInterval1d.className = 'px-2.5 py-1 rounded-md bg-white text-gray-900 shadow-xs font-semibold';
-            btnInterval5m.className = 'px-2.5 py-1 rounded-md text-gray-500 hover:text-gray-900 transition';
+            btnInterval1d.className = 'px-3 py-1 rounded-full bg-electricLime text-black font-bold shadow-xs transition';
+            btnInterval5m.className = 'px-3 py-1 rounded-full text-mutedText hover:text-white transition';
             if (chartTitle) chartTitle.textContent = 'NIFTY 50 • Daily';
             loadHistoricalData();
         });
@@ -476,9 +487,9 @@ function setupEventHandlers() {
     document.querySelectorAll('.btn-range').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.btn-range').forEach(b => {
-                b.className = 'btn-range px-2 py-0.5 rounded text-gray-500 hover:text-gray-900';
+                b.className = 'btn-range px-2.5 py-1 rounded-md text-mutedText hover:text-white transition';
             });
-            e.target.className = 'btn-range px-2 py-0.5 rounded bg-gray-100 text-gray-900 font-semibold active';
+            e.target.className = 'btn-range px-2.5 py-1 rounded-md bg-[#222222] text-electricLime font-bold active';
             state.bars = parseInt(e.target.dataset.bars, 10);
             loadHistoricalData();
         });
@@ -496,7 +507,7 @@ function setupEventHandlers() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `nifty50_forecast_${state.interval}.csv`;
+            a.download = `nifty50_neural_forecast_${state.interval}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         });
