@@ -1,15 +1,15 @@
-/* Editorial Luxury Organic Theme: Sage Green, Walnut Brown, Amber Glow */
+/* Curated Organic Theme: Sage Green (#87A96B), Walnut Brown (#5A3E2B), Amber Glow (#D5851F) */
 
 :root {
     --color-sage: #87A96B;
-    --color-sage-deep: #55723E;
+    --color-sage-deep: #567340;
     --color-walnut: #5A3E2B;
-    --color-walnut-dark: #2C221B;
+    --color-walnut-dark: #23150D;
     --color-amber: #D5851F;
     --color-terracotta: #C0583A;
-    --color-sand: #FAF7F2;
-    --color-sand-muted: #F2EDE4;
-    --color-border: #E6DFD5;
+    --color-sand: #F5F1EB;
+    --color-sand-muted: #ECE5DB;
+    --color-border: #E2D8CC;
 }
 
 body {
@@ -17,13 +17,13 @@ body {
     color: var(--color-walnut-dark);
 }
 
-/* Editorial Serif Headings */
-h1, h2, h3, .font-editorial {
+/* Headings in Cormorant Garamond */
+h1, h2, h3, h4, .font-serif {
     font-family: 'Cormorant Garamond', Georgia, serif;
     letter-spacing: -0.015em;
 }
 
-/* Subtle, refined scrollbars */
+/* Smooth Scrollbars */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -32,19 +32,19 @@ h1, h2, h3, .font-editorial {
     background: var(--color-sand);
 }
 ::-webkit-scrollbar-thumb {
-    background: #D8CEBE;
+    background: #D4C7B8;
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #BEB19F;
+    background: #BEB09F;
 }
 
-/* Luxury Prediction Cards */
+/* Prediction Cards */
 .prediction-card {
     background: #FFFFFF;
     border: 1px solid var(--color-border);
-    border-radius: 14px;
-    padding: 14px;
+    border-radius: 18px;
+    padding: 16px;
     box-shadow: 0 4px 18px -2px rgba(90, 62, 43, 0.05);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
@@ -55,31 +55,50 @@ h1, h2, h3, .font-editorial {
 .prediction-card:hover {
     transform: translateY(-3px);
     border-color: var(--color-amber);
-    box-shadow: 0 8px 24px -4px rgba(213, 133, 31, 0.12);
+    box-shadow: 0 10px 24px -4px rgba(213, 133, 31, 0.15);
 }
 
 /* Trend Badges */
 .badge-bullish {
-    background-color: rgba(135, 169, 107, 0.15);
+    background-color: rgba(135, 169, 107, 0.16);
     color: #4C6A34;
-    border: 1px solid rgba(135, 169, 107, 0.35);
+    border: 1px solid rgba(135, 169, 107, 0.4);
 }
 
 .badge-bearish {
-    background-color: rgba(192, 88, 58, 0.12);
+    background-color: rgba(192, 88, 58, 0.14);
     color: #A0452C;
-    border: 1px solid rgba(192, 88, 58, 0.3);
+    border: 1px solid rgba(192, 88, 58, 0.35);
 }
 
 .badge-neutral {
-    background-color: rgba(213, 133, 31, 0.12);
+    background-color: rgba(213, 133, 31, 0.14);
     color: #9A5A0A;
-    border: 1px solid rgba(213, 133, 31, 0.3);
+    border: 1px solid rgba(213, 133, 31, 0.35);
 }
 
-/* Range buttons */
+/* Range buttons active state */
 .btn-range.active {
     background-color: var(--color-sand-muted);
     color: var(--color-walnut-dark);
     font-weight: 700;
+}
+
+/* Live Tick Flash Keyframes */
+@keyframes flashUptick {
+    0% { background-color: rgba(135, 169, 107, 0.4); transform: scale(1.02); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+@keyframes flashDowntick {
+    0% { background-color: rgba(192, 88, 58, 0.4); transform: scale(1.02); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+.flash-uptick {
+    animation: flashUptick 0.8s ease-out;
+}
+
+.flash-downtick {
+    animation: flashDowntick 0.8s ease-out;
 }

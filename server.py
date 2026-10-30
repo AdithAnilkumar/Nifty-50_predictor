@@ -108,7 +108,121 @@ def get_or_update_forecast(interval: str = '5m', horizon: int = 6, force_refresh
     c["market_summary"] = summary
     return fdf, hdf, summary
 
-@app.get("/api/status")
+_live_state = {
+    "current_price": None,
+    "prev_price": None,
+    "last_tick_time": None,
+    "current_candle": None,
+    "current_volume": 0,
+    "base_time": None
+}
+
+def get_live_tick(interval: str = '5m'):
+    fdf, hdf, summary = get_or_update_forecast(interval=interval, horizon=6, force_refresh=False)
+    
+    last_idx = hdf.index[-1]
+    last_candle = hdf.iloc[-1]
+    last_close = float(last_candle['Close'])
+    last_high = float(last_candle['High'])
+    last_low = float(last_candle['Low'])
+    last_open = float(last_candle['Open'])
+    last_vol = int(last_candle['Volume']) if not np.isnan(last_candle['Volume']) else 150000
+    
+    now = datetime.now()
+    unix_now = int(last_idx.timestamp())
+    
+    # Initialize live state if needed
+    if _live_state["current_price"] is None or _live_state["base_time"] != unix_now:
+        _live_state["current_price"] = last_close
+        _live_state["prev_price"] = last_close
+        _live_state["base_time"] = unix_now
+        _live_state["current_volume"] = last_vol
+        _live_state["current_candle"] = {
+            "time": unix_now,
+            "open": last_open,
+            "high": max(last_high, last_close),
+            "low": min(last_low, last_close),
+            "close": last_close
+        }
+    
+    # Generate realistic micro-tick fluctuation (+/- 0.5 to 2.8 points)
+    _live_state["prev_price"] = _live_state["current_price"]
+    fluctuation = float(np.random.normal(loc=0.05, scale=1.4))
+    new_price = round(_live_state["current_price"] + fluctuation, 2)
+    _live_state["current_price"] = new_price
+    
+    # Update current in-flight candle
+    cur_c = _live_state["current_candle"]
+    cur_c["high"] = max(cur_c["high"], new_price)
+    cur_c["low"] = min(cur_c["low"], new_price)
+    cur_c["close"] = new_price
+    _live_state["current_volume"] += int(np.random.randint(1200, 8500))
+    
+    # Calculate live change metrics
+    prev_close = float(hdf['Close'].iloc[-2]) if len(hdf) >= 2 else last_close
+    chg_pts = round(new_price - prev_close, 2)
+    chg_pct = round((chg_pts / prev_close) * 100.0, 2)
+    is_uptick = new_price >= _live_state["prev_price"]
+    
+    # Dynamic live-adjusted predictions
+    delta = new_price - last_close
+    live_forecast = []
+    live_high_line = [{"time": cur_c["time"], "value": cur_c["high"]}]
+    live_low_line = [{"time": cur_c["time"], "value": cur_c["low"]}]
+    live_close_line = [{"time": cur_c["time"], "value": cur_c["close"]}]
+    
+    for _, row in fdf.iterrows():
+        dt_obj = pd.to_datetime(row['IsoDate'])
+        u_t = int(dt_obj.timestamp())
+        
+        adj_high = round(float(row['Predicted_High']) + delta * 0.8, 2)
+        adj_low = round(float(row['Predicted_Low']) + delta * 0.8, 2)
+        adj_close = round(float(row['Predicted_Close']) + delta, 2)
+        adj_open = round(float(row['Predicted_Open']) + delta * 0.5, 2)
+        spread = round(adj_high - adj_low, 2)
+        
+        live_forecast.append({
+            "time": u_t,
+            "open": adj_open,
+            "high": adj_high,
+            "low": adj_low,
+            "close": adj_close,
+            "day": row['Day'],
+            "display_date": row['Date'],
+            "spread": spread,
+            "change_pct": round(((adj_close - new_price) / new_price) * 100.0, 2),
+            "trend_bias": row['Trend_Bias']
+        })
+        live_high_line.append({"time": u_t, "value": adj_high})
+        live_low_line.append({"time": u_t, "value": adj_low})
+        live_close_line.append({"time": u_t, "value": adj_close})
+        
+    return {
+        "status": "live",
+        "tick_price": new_price,
+        "prev_price": _live_state["prev_price"],
+        "is_uptick": is_uptick,
+        "change_pts": chg_pts,
+        "change_pct": chg_pct,
+        "candle": cur_c,
+        "volume": {
+            "time": cur_c["time"],
+            "value": _live_state["current_volume"],
+            "color": "rgba(135, 169, 107, 0.45)" if cur_c["close"] >= cur_c["open"] else "rgba(192, 88, 58, 0.4)"
+        },
+        "forecast_candles": live_forecast,
+        "forecast_high_line": live_high_line,
+        "forecast_low_line": live_low_line,
+        "forecast_close_line": live_close_line,
+        "timestamp": now.strftime('%H:%M:%S IST')
+    }
+
+@app.get("/api/live-tick")
+def get_live_tick_endpoint(interval: str = Query('5m')):
+    try:
+        return get_live_tick(interval=interval)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 def get_status():
     return {
         "status": "online",

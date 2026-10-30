@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIFTY 50 • Neural Time Series Intelligence</title>
+    <title>NIFTY 50 • Intelligence That Feels Alive</title>
     
-    <!-- TradingView Lightweight Charts Library (for fluid, accurate canvas rendering) -->
+    <!-- Lightweight Charts (v4.2.0) -->
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     
-    <!-- Google Fonts: Cormorant Garamond (Editorial Serif), Plus Jakarta Sans & JetBrains Mono -->
+    <!-- Google Fonts: Cormorant Garamond, Plus Jakarta Sans, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS with Custom Organic Palette -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,37 +21,46 @@
                 extend: {
                     colors: {
                         sage: {
-                            50: '#F4F7F2',
-                            100: '#E7EFE3',
-                            300: '#B6D1A3',
-                            500: '#87A96B', // Main Sage Green
-                            600: '#6E9152',
-                            700: '#55723E',
-                            800: '#3D522C'
+                            50: '#F4F7F1',
+                            100: '#E6EFE1',
+                            200: '#CFE0C6',
+                            300: '#B2CFA4',
+                            400: '#9ABF87',
+                            500: '#87A96B', // Main SAGE GREEN from reel
+                            600: '#6F9154',
+                            700: '#567340',
+                            800: '#3E542D'
                         },
                         walnut: {
-                            50: '#F9F7F5',
-                            100: '#F0EBE6',
-                            200: '#DFD5CC',
-                            400: '#8A6A50',
-                            600: '#5A3E2B', // Main Walnut Brown
-                            700: '#462F20',
+                            50: '#FBF9F7',
+                            100: '#F4EEE9',
+                            200: '#E6D9CE',
+                            300: '#D4C0B0',
+                            400: '#9E7E66',
+                            500: '#75543D',
+                            600: '#5A3E2B', // Main WALNUT BROWN from reel
+                            700: '#473021',
                             800: '#342217',
-                            900: '#23160F'
+                            900: '#23150D'
                         },
                         amberGlow: {
                             50: '#FCF7F0',
-                            100: '#F7EBDA',
-                            300: '#E9C48F',
-                            500: '#D5851F', // Main Amber Glow
+                            100: '#FAECDA',
+                            200: '#F4D6B2',
+                            300: '#EBB983',
+                            400: '#E09F50',
+                            500: '#D5851F', // Main AMBER GLOW from reel
                             600: '#B86F15',
-                            700: '#94550D'
+                            700: '#91540C'
                         },
                         terracotta: '#C0583A',
-                        sand: '#FAF7F2',
-                        sandMuted: '#F2EDE4',
-                        sandBorder: '#E6DFD5',
-                        sandDark: '#DDD4C7'
+                        sand: {
+                            base: '#F5F1EB',
+                            card: '#FFFFFF',
+                            muted: '#ECE5DB',
+                            border: '#E2D8CC',
+                            darkBorder: '#D1C4B4'
+                        }
                     },
                     fontFamily: {
                         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
@@ -67,174 +76,246 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-sand text-walnut-900 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-sand-base text-walnut-900 font-sans antialiased min-h-screen flex flex-col selection:bg-amberGlow-100 selection:text-walnut-900">
 
-    <!-- Top Editorial Header Bar -->
-    <header class="bg-sand/90 backdrop-blur-md border-b border-sandBorder sticky top-0 z-40 px-6 py-3.5 transition-all">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- Top Luxury Navigation Bar -->
+    <header class="bg-sand-base/95 backdrop-blur-md border-b border-sand-border sticky top-0 z-40 px-6 py-3 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             
-            <!-- Left: Brand & Title -->
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-xl bg-walnut-600 text-sand flex items-center justify-center shadow-sm">
-                    <span class="font-serif font-bold text-xl italic tracking-tighter">N</span>
+            <!-- Brand & Tagline -->
+            <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-walnut-600 text-sand-base flex items-center justify-center shadow-xs">
+                    <span class="font-serif font-bold text-xl italic">N</span>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="font-serif text-2xl font-bold tracking-tight text-walnut-900">NIFTY 50</h1>
-                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sage-100 text-sage-800 border border-sage-300">
+                        <span class="font-serif text-2xl font-bold tracking-tight text-walnut-900">NIFTY 50</span>
+                        <span class="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sage-100 text-sage-800 border border-sage-300">
                             Neural Intelligence
                         </span>
+                        <!-- Live Streaming Indicator Badge -->
+                        <span id="live-badge" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-bold tracking-wider uppercase animate-pulse">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span id="live-badge-text">Live Ticking</span>
+                        </span>
                     </div>
-                    <p class="text-xs text-walnut-400 font-medium tracking-wide">Time Series Forecasting • Experiment 13 (CO4) • Deep LSTM Model</p>
+                    <p class="text-[11px] text-walnut-400 font-medium">Curated Intraday Forecasting • Experiment 13 (CO4) • Deep LSTM Engine</p>
                 </div>
             </div>
 
-            <!-- Center/Right: Live Price Banner & Controls -->
-            <div class="flex flex-wrap items-center gap-3">
-                
-                <!-- Quick Market Stat Badge -->
-                <div class="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-white border border-sandBorder shadow-xs">
-                    <div class="flex items-baseline gap-1.5">
-                        <span class="text-[10px] uppercase font-bold text-walnut-400">Current</span>
-                        <span id="header-price" class="font-mono text-base font-bold text-walnut-900">--</span>
-                    </div>
-                    <div class="h-3 w-px bg-sandBorder"></div>
-                    <span id="header-change" class="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-sage-50 text-sage-700">
-                        --
-                    </span>
+            <!-- The 3 Chic Theme Swatches from the Reel -->
+            <div class="hidden md:flex items-center gap-2">
+                <!-- Swatch 1: Sage Green -->
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sage-500 text-white text-[10px] font-semibold shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-white/80"></span>
+                    <span>SAGE GREEN <span class="opacity-80 font-mono text-[9px]">#87A96B</span></span>
                 </div>
+                <!-- Swatch 2: Walnut Brown -->
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-walnut-600 text-white text-[10px] font-semibold shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-white/80"></span>
+                    <span>WALNUT BROWN <span class="opacity-80 font-mono text-[9px]">#5A3E2B</span></span>
+                </div>
+                <!-- Swatch 3: Amber Glow -->
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amberGlow-500 text-white text-[10px] font-semibold shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-white/80"></span>
+                    <span>AMBER GLOW <span class="opacity-80 font-mono text-[9px]">#D5851F</span></span>
+                </div>
+            </div>
 
-                <!-- Interval Switcher (5m vs 1D) -->
-                <div class="flex items-center p-1 rounded-xl bg-sandMuted border border-sandBorder text-xs font-semibold">
+            <!-- Controls (Interval, Pause, Export) -->
+            <div class="flex items-center gap-2.5">
+                <!-- Interval Toggle -->
+                <div class="flex items-center p-1 rounded-xl bg-sand-muted border border-sand-border text-xs font-semibold">
                     <button id="btn-interval-5m" class="px-3 py-1.5 rounded-lg bg-walnut-600 text-white shadow-xs transition-all font-medium flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-sage-300 animate-pulse"></span>
-                        <span>5-Min Intraday</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-sage-300"></span>
+                        <span>5-Min</span>
                     </button>
                     <button id="btn-interval-1d" class="px-3 py-1.5 rounded-lg text-walnut-600 hover:text-walnut-900 transition-all font-medium">
                         Daily
                     </button>
                 </div>
 
-                <!-- Refresh Button -->
-                <button id="btn-refresh" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sandMuted text-walnut-800 border border-sandBorder text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
-                    <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-amberGlow-500" id="refresh-icon"></i>
-                    <span>Refresh</span>
+                <!-- Live Stream Toggle (Pause / Resume) -->
+                <button id="btn-toggle-live" class="px-3 py-1.5 rounded-xl bg-white hover:bg-sand-muted text-walnut-800 border border-sand-border text-xs font-semibold shadow-2xs transition flex items-center gap-1.5">
+                    <i data-lucide="radio" class="w-3.5 h-3.5 text-sage-600" id="live-icon"></i>
+                    <span id="live-toggle-text">Live: Active</span>
                 </button>
 
                 <!-- Export CSV Button -->
-                <button id="btn-export-csv" class="px-3 py-1.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                <button id="btn-export-csv" class="px-3 py-1.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold shadow-2xs transition flex items-center gap-1.5">
                     <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                    <span>Export Data</span>
+                    <span>Export</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Container Layout -->
+    <!-- Main Workspace -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-        <!-- Top Section: 6 High-Low AI Prediction Cards (Spaces that feel alive aesthetic) -->
-        <section class="space-y-3">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="font-serif text-xl sm:text-2xl font-bold text-walnut-900 flex items-center gap-2">
-                        <span>Projected Horizon</span>
-                        <span class="font-sans text-xs font-medium text-walnut-400">/ Next 6 Candles High & Low Bounds</span>
+        <!-- Hero Section: "Intelligence that feels alive." -->
+        <section class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-border shadow-sm relative overflow-hidden">
+            <!-- Subtle organic ambient radial background -->
+            <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-sage-100/60 blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-amberGlow-100/50 blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                
+                <!-- Left Title & Philosophy (Matching Reel) -->
+                <div class="max-w-2xl space-y-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sand-muted/70 text-walnut-700 text-xs font-serif italic border border-sand-border">
+                        <span>Curated Time Series Forecasting</span>
+                        <span>•</span>
+                        <span>Multi-Horizon Boundaries</span>
+                    </div>
+                    <h2 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-walnut-900 leading-[1.1]">
+                        Intelligence that feels alive.
                     </h2>
+                    <p class="text-xs sm:text-sm text-walnut-500 font-sans leading-relaxed max-w-xl">
+                        Deep stacked neural sequence architecture trained on intraday patterns. Delivering high-fidelity future High & Low boundaries in real time.
+                    </p>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-medium text-walnut-600">
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sage-500"></span> Pred High</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amberGlow-500"></span> Expected Close</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-terracotta"></span> Pred Low</span>
-                </div>
-            </div>
 
-            <!-- 6 Cards Grid -->
-            <div id="forecast-cards-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                <!-- Dynamically generated by app.js -->
-                <div class="col-span-full py-8 text-center text-xs text-walnut-400">Loading AI projections...</div>
-            </div>
-        </section>
+                <!-- Right Big Live Price Card -->
+                <div class="bg-sand-base/80 backdrop-blur-sm rounded-2xl p-5 border border-sand-border min-w-[280px] shadow-xs space-y-2" id="live-price-card">
+                    <div class="flex items-center justify-between text-xs text-walnut-400">
+                        <span class="font-bold tracking-wider uppercase text-[10px]">NSE NIFTY 50 • LIVE TICK</span>
+                        <span class="font-mono text-[10px] text-walnut-500" id="live-tick-clock">--:--:-- IST</span>
+                    </div>
+                    
+                    <div class="flex items-baseline gap-2">
+                        <span id="live-price-display" class="font-mono text-3xl sm:text-4xl font-bold text-walnut-900 transition-colors duration-200">
+                            ₹22,957.60
+                        </span>
+                    </div>
 
-        <!-- Center Section: Interactive Organic Chart -->
-        <section class="bg-white rounded-2xl border border-sandBorder shadow-sm overflow-hidden flex flex-col">
-            
-            <!-- Chart Sub-Header Controls -->
-            <div class="px-5 py-3.5 border-b border-sandBorder flex flex-wrap items-center justify-between gap-3 bg-white">
-                <div class="flex items-center gap-3">
-                    <span class="font-serif text-lg font-bold text-walnut-900">Unified Chart</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-sandMuted text-walnut-600 font-medium" id="chart-interval-badge">5-Minute Candles</span>
-                    <div class="hidden sm:flex items-center gap-3 font-mono text-xs text-walnut-400">
-                        <span>O: <b id="ohlc-open" class="text-walnut-800">--</b></span>
-                        <span>H: <b id="ohlc-high" class="text-sage-600">--</b></span>
-                        <span>L: <b id="ohlc-low" class="text-terracotta">--</b></span>
-                        <span>C: <b id="ohlc-close" class="text-walnut-800">--</b></span>
+                    <div class="flex items-center justify-between pt-1 text-xs">
+                        <span id="live-change-display" class="font-mono font-bold px-2 py-0.5 rounded-lg bg-sage-100 text-sage-800">
+                            +20.40 (+0.09%)
+                        </span>
+                        <span class="text-[11px] text-walnut-400 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            Stream active
+                        </span>
                     </div>
                 </div>
 
-                <!-- Overlays & Range Toggles -->
-                <div class="flex items-center gap-3 text-xs">
-                    <label class="flex items-center gap-1.5 cursor-pointer text-walnut-600 font-medium">
+            </div>
+        </section>
+
+        <!-- Section: The 6 AI Predicted High-Low Cards (Living Horizon) -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <div>
+                    <h3 class="font-serif text-xl sm:text-2xl font-bold text-walnut-900 flex items-center gap-2">
+                        <span>Living Horizon</span>
+                        <span class="font-sans text-xs font-normal text-walnut-400">/ Next 6 Projected High & Low Bounds (Live-Adjusting)</span>
+                    </h3>
+                </div>
+                <div class="hidden sm:flex items-center gap-3 text-xs font-medium text-walnut-600">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sage-500"></span> Pred High</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amberGlow-500"></span> Expected Close</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-terracotta"></span> Pred Low</span>
+                </div>
+            </div>
+
+            <!-- Dynamic 6 Cards Container -->
+            <div id="forecast-cards-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                <!-- Injected & updated live by app.js -->
+            </div>
+        </section>
+
+        <!-- Section: Interactive Living Candlestick Chart -->
+        <section class="bg-white rounded-3xl border border-sand-border shadow-sm overflow-hidden flex flex-col">
+            
+            <!-- Chart Bar Controls -->
+            <div class="px-6 py-4 border-b border-sand-border flex flex-wrap items-center justify-between gap-3 bg-white">
+                <div class="flex items-center gap-3">
+                    <span class="font-serif text-lg font-bold text-walnut-900">Unified Neural Chart</span>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-sand-muted text-walnut-700 font-medium" id="chart-interval-badge">5-Minute Candles</span>
+                    
+                    <!-- Live In-Flight Candle Values -->
+                    <div class="hidden md:flex items-center gap-3 font-mono text-xs text-walnut-400 pl-2">
+                        <span>O: <b id="bar-open" class="text-walnut-800">--</b></span>
+                        <span>H: <b id="bar-high" class="text-sage-600">--</b></span>
+                        <span>L: <b id="bar-low" class="text-terracotta">--</b></span>
+                        <span>C: <b id="bar-close" class="text-walnut-800">--</b></span>
+                    </div>
+                </div>
+
+                <!-- Toggles & Range -->
+                <div class="flex items-center gap-4 text-xs">
+                    <label class="flex items-center gap-1.5 cursor-pointer text-walnut-700 font-medium">
                         <input type="checkbox" id="chk-sma" checked class="rounded text-amberGlow-500 focus:ring-0 accent-amberGlow-500">
                         <span>SMA 20</span>
                     </label>
-                    <label class="flex items-center gap-1.5 cursor-pointer text-walnut-600 font-medium">
-                        <input type="checkbox" id="chk-forecast-envelope" checked class="rounded text-sage-500 focus:ring-0 accent-sage-500">
+                    <label class="flex items-center gap-1.5 cursor-pointer text-walnut-700 font-medium">
+                        <input type="checkbox" id="chk-envelope" checked class="rounded text-sage-500 focus:ring-0 accent-sage-500">
                         <span>AI Boundary Channel</span>
                     </label>
-                    <div class="h-4 w-px bg-sandBorder"></div>
-                    <!-- Timeframe buttons -->
+                    <div class="h-4 w-px bg-sand-border"></div>
                     <div class="flex items-center gap-1 font-medium text-xs text-walnut-600" id="timeframe-buttons">
-                        <button class="btn-range px-2 py-1 rounded-md hover:bg-sandMuted" data-bars="75">1D</button>
-                        <button class="btn-range px-2 py-1 rounded-md hover:bg-sandMuted active bg-sandMuted text-walnut-900 font-bold" data-bars="150">2D</button>
-                        <button class="btn-range px-2 py-1 rounded-md hover:bg-sandMuted" data-bars="300">4D</button>
+                        <button class="btn-range px-2.5 py-1 rounded-lg hover:bg-sand-muted" data-bars="75">1D (75c)</button>
+                        <button class="btn-range px-2.5 py-1 rounded-lg hover:bg-sand-muted active bg-sand-muted text-walnut-900 font-bold" data-bars="150">2D</button>
+                        <button class="btn-range px-2.5 py-1 rounded-lg hover:bg-sand-muted" data-bars="300">4D</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Chart Canvas Container -->
-            <div class="relative w-full h-[480px] sm:h-[540px] bg-sand">
-                <div id="chart-container" class="w-full h-full"></div>
+            <!-- Chart Canvas Mount -->
+            <div class="relative w-full h-[500px] sm:h-[560px] bg-[#FAF6F0]">
+                <div id="chart-mount" class="w-full h-full"></div>
 
-                <!-- Chart Loading Spinner -->
-                <div id="chart-loader" class="absolute inset-0 bg-sand/80 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-20 transition-opacity">
-                    <div class="w-7 h-7 border-3 border-walnut-600 border-t-transparent rounded-full animate-spin"></div>
-                    <span class="text-xs font-serif text-walnut-600 italic">Synthesizing market patterns & projections...</span>
+                <!-- Floating Live Tick Pulse in corner -->
+                <div class="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-2 bg-white/90 backdrop-blur-xs px-3 py-1.5 rounded-full border border-sand-border shadow-2xs text-[10px] font-mono text-walnut-600">
+                    <span class="w-2 h-2 rounded-full bg-sage-500 animate-ping"></span>
+                    <span>Live Tick: <b id="tick-counter" class="text-walnut-900">0</b> updates</span>
+                </div>
+
+                <!-- Loader -->
+                <div id="chart-loader" class="absolute inset-0 bg-[#FAF6F0]/85 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-20 transition-opacity">
+                    <div class="w-8 h-8 border-3 border-walnut-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-serif text-walnut-700 italic">Initializing neural canvas & streaming feed...</span>
                 </div>
             </div>
 
-            <!-- Chart Footer Meta -->
-            <div class="px-5 py-2.5 border-t border-sandBorder bg-sandMuted/60 flex flex-wrap items-center justify-between text-[11px] text-walnut-600">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-sage-500"></span>
-                    <span>Live Market Feed: <b>National Stock Exchange (NSE India)</b></span>
+            <!-- Chart Footer Diagnostics -->
+            <div class="px-6 py-3 border-t border-sand-border bg-sand-muted/50 flex flex-wrap items-center justify-between text-[11px] text-walnut-600">
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-sage-500"></span>
+                        <span>Feed: <b>National Stock Exchange of India (NSE)</b></span>
+                    </span>
+                    <span class="text-sand-border">•</span>
+                    <span>Lookback: <b class="font-mono text-walnut-800">60 Historical Windows</b></span>
                 </div>
                 <div class="flex items-center gap-4">
-                    <span>Model: <b class="font-mono text-walnut-800">Stacked Relative-Offset LSTM</b></span>
-                    <span id="clock-display" class="font-mono text-walnut-600">--</span>
+                    <span>Model: <b class="text-walnut-800">Stacked Relative-Offset LSTM</b></span>
+                    <span id="system-clock" class="font-mono text-walnut-700">--:--:-- IST</span>
                 </div>
             </div>
+
         </section>
 
-        <!-- Bottom Section: Summary & Technical Diagnostics -->
+        <!-- Section: Range Analytics & Neural Metrics -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <!-- Card 1: Key Statistics -->
-            <div class="bg-white rounded-2xl p-5 border border-sandBorder shadow-sm space-y-3">
-                <div class="flex items-center justify-between border-b border-sandBorder pb-2">
-                    <h3 class="font-serif text-lg font-bold text-walnut-900">Forecast Range Analysis</h3>
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-amberGlow-500"></i>
+            <!-- Card 1: Horizon Extremes -->
+            <div class="bg-white rounded-3xl p-6 border border-sand-border shadow-xs space-y-3">
+                <div class="flex items-center justify-between border-b border-sand-border pb-2.5">
+                    <h4 class="font-serif text-lg font-bold text-walnut-900">Horizon Extremes</h4>
+                    <i data-lucide="compass" class="w-4 h-4 text-amberGlow-500"></i>
                 </div>
                 <div class="space-y-2 text-xs">
-                    <div class="flex justify-between py-1 border-b border-sand/60">
+                    <div class="flex justify-between py-1 border-b border-sand-base">
                         <span class="text-walnut-400">Peak Predicted High</span>
                         <b id="stat-max-high" class="font-mono text-sage-600 text-sm">--</b>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-sand/60">
+                    <div class="flex justify-between py-1 border-b border-sand-base">
                         <span class="text-walnut-400">Lowest Predicted Low</span>
                         <b id="stat-min-low" class="font-mono text-terracotta text-sm">--</b>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-sand/60">
+                    <div class="flex justify-between py-1 border-b border-sand-base">
                         <span class="text-walnut-400">Average Expected Spread</span>
                         <b id="stat-avg-spread" class="font-mono text-walnut-800 text-sm">--</b>
                     </div>
@@ -245,43 +326,43 @@
                 </div>
             </div>
 
-            <!-- Card 2: Model Performance Metrics -->
-            <div class="bg-white rounded-2xl p-5 border border-sandBorder shadow-sm space-y-3">
-                <div class="flex items-center justify-between border-b border-sandBorder pb-2">
-                    <h3 class="font-serif text-lg font-bold text-walnut-900">Neural Network Fidelity</h3>
+            <!-- Card 2: Neural Fidelity -->
+            <div class="bg-white rounded-3xl p-6 border border-sand-border shadow-xs space-y-3">
+                <div class="flex items-center justify-between border-b border-sand-border pb-2.5">
+                    <h4 class="font-serif text-lg font-bold text-walnut-900">Neural Fidelity</h4>
                     <i data-lucide="cpu" class="w-4 h-4 text-sage-600"></i>
                 </div>
                 <div class="space-y-2 text-xs">
-                    <div class="flex justify-between py-1 border-b border-sand/60">
+                    <div class="flex justify-between py-1 border-b border-sand-base">
                         <span class="text-walnut-400">High Prediction MAPE</span>
-                        <b id="stat-mape" class="font-mono text-sage-600 font-bold">0.05%</b>
+                        <b class="font-mono text-sage-600 font-bold">0.05%</b>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-sand/60">
-                        <span class="text-walnut-400">R² Coefficient of Determination</span>
-                        <b id="stat-r2" class="font-mono text-walnut-800 font-bold">0.9588</b>
+                    <div class="flex justify-between py-1 border-b border-sand-base">
+                        <span class="text-walnut-400">R² Coefficient</span>
+                        <b class="font-mono text-walnut-800 font-bold">0.9588</b>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-sand/60">
-                        <span class="text-walnut-400">Training Samples (Expanded)</span>
+                    <div class="flex justify-between py-1 border-b border-sand-base">
+                        <span class="text-walnut-400">Training Sample Volume</span>
                         <b class="font-mono text-walnut-800">4,496 Candles</b>
                     </div>
                     <div class="flex justify-between py-1">
-                        <span class="text-walnut-400">Representation Architecture</span>
-                        <b class="text-walnut-800">Relative Offset Window</b>
+                        <span class="text-walnut-400">Loss Objective</span>
+                        <b class="text-walnut-800">Smooth L1 / Huber Loss</b>
                     </div>
                 </div>
             </div>
 
-            <!-- Card 3: Academic / Project Details (Exp 13) -->
-            <div class="bg-white rounded-2xl p-5 border border-sandBorder shadow-sm space-y-3">
-                <div class="flex items-center justify-between border-b border-sandBorder pb-2">
-                    <h3 class="font-serif text-lg font-bold text-walnut-900">Academic Project (CO4)</h3>
+            <!-- Card 3: Experiment Details -->
+            <div class="bg-white rounded-3xl p-6 border border-sand-border shadow-xs space-y-3">
+                <div class="flex items-center justify-between border-b border-sand-border pb-2.5">
+                    <h4 class="font-serif text-lg font-bold text-walnut-900">Lab Experiment 13</h4>
                     <i data-lucide="book-open" class="w-4 h-4 text-walnut-600"></i>
                 </div>
                 <p class="text-xs text-walnut-600 leading-relaxed">
-                    <b>Experiment 13:</b> Time Series Forecasting for the NIFTY-50 Dataset. Uses a multi-layer stacked LSTM neural network with Huber loss optimization and lookback sequence buffers.
+                    Time Series Forecasting for the NIFTY-50 Dataset (CO4). Integrates real-time price feeds, relative normalization, and multi-horizon target boundaries.
                 </p>
-                <div class="pt-2 flex items-center justify-between text-[11px] text-walnut-400 border-t border-sandBorder">
-                    <span>Model File: <code class="bg-sandMuted px-1.5 py-0.5 rounded text-walnut-700">models/nifty50_lstm_5m.pth</code></span>
+                <div class="pt-2 flex items-center justify-between text-[11px] text-walnut-400 border-t border-sand-border">
+                    <span>Artifact: <code class="bg-sand-muted px-1.5 py-0.5 rounded text-walnut-700">models/nifty50_lstm_5m.pth</code></span>
                 </div>
             </div>
 
@@ -290,11 +371,11 @@
     </main>
 
     <!-- Editorial Footer -->
-    <footer class="mt-auto border-t border-sandBorder bg-sandMuted/40 py-4 px-6 text-center text-xs text-walnut-400">
-        <p>NIFTY-50 Intelligent Deep Learning Forecaster • Curated Natural Aesthetics (Sage Green, Walnut Brown, Amber Glow) • Experiment 13</p>
+    <footer class="mt-auto border-t border-sand-border bg-sand-muted/40 py-4 px-6 text-center text-xs text-walnut-400">
+        <p>Curated Organic Architecture • Sage Green (#87A96B), Walnut Brown (#5A3E2B), Amber Glow (#D5851F) • NIFTY 50 Predictor</p>
     </footer>
 
-    <!-- Scripts -->
+    <!-- App Logic Script -->
     <script src="/static/app.js"></script>
     <script>
         lucide.createIcons();
