@@ -209,7 +209,7 @@ function initThreeJSScene() {
 }
 
 // ==========================================
-// 2. CHART ENGINE (Default TradingView Theme)
+// 2. CHART ENGINE (Dark Mode - Zero Logos)
 // ==========================================
 function initChartEngine() {
     if (!chartMount) return;
@@ -219,14 +219,14 @@ function initChartEngine() {
         width: chartMount.clientWidth,
         height: chartMount.clientHeight,
         layout: {
-            background: { type: 'solid', color: '#FFFFFF' }, // Default TradingView Crisp White
-            textColor: '#131722', // Default TradingView Dark Label Text
+            background: { type: 'solid', color: '#131722' }, // Official Dark Mode Background
+            textColor: '#787B86', // Sleek Muted Gray for Scales
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif",
             fontSize: 11
         },
         grid: {
-            vertLines: { color: '#F0F3FA' }, // Default TradingView Grid
-            horzLines: { color: '#F0F3FA' }
+            vertLines: { color: '#1E222D' }, // Subtle Dark Gridlines
+            horzLines: { color: '#1E222D' }
         },
         crosshair: {
             mode: LightweightCharts.CrosshairMode.Normal,
@@ -234,25 +234,25 @@ function initChartEngine() {
                 color: '#758696',
                 width: 1,
                 style: LightweightCharts.LineStyle.Dashed,
-                labelBackgroundColor: '#131722',
-                labelTextColor: '#FFFFFF'
+                labelBackgroundColor: '#2A2E39',
+                labelTextColor: '#D1D4DC'
             },
             horzLine: {
                 color: '#758696',
                 width: 1,
                 style: LightweightCharts.LineStyle.Dashed,
-                labelBackgroundColor: '#131722',
-                labelTextColor: '#FFFFFF'
+                labelBackgroundColor: '#2A2E39',
+                labelTextColor: '#D1D4DC'
             }
         },
         rightPriceScale: {
-            borderColor: '#E0E3EB', // Default TradingView Scale Border
+            borderColor: '#2A2E39', // Dark Scale Border
             visible: true,
             autoScale: true,
             scaleMargins: { top: 0.08, bottom: 0.18 }
         },
         timeScale: {
-            borderColor: '#E0E3EB',
+            borderColor: '#2A2E39',
             timeVisible: true,
             secondsVisible: false,
             fixLeftEdge: true,
@@ -271,7 +271,7 @@ function initChartEngine() {
         }
     });
 
-    // Volume Overlay (TradingView Default Bottom 15%)
+    // Volume Overlay (Dark Mode Bottom 15%)
     volumeSeries = chart.addHistogramSeries({
         color: '#089981',
         priceFormat: { type: 'volume' },
@@ -282,7 +282,7 @@ function initChartEngine() {
         scaleMargins: { top: 0.85, bottom: 0 }
     });
 
-    // Candlesticks: Default TradingView Green (#089981) Up, Red (#F23645) Down
+    // Candlesticks: Crisp Green (#089981) Up, Red (#F23645) Down
     candleSeries = chart.addCandlestickSeries({
         upColor: '#089981',
         downColor: '#F23645',
@@ -292,7 +292,7 @@ function initChartEngine() {
         wickDownColor: '#F23645'
     });
 
-    // SMA 20 Overlay (Default TradingView Amber #F59E0B)
+    // SMA 20 Overlay (Dark Mode Amber #F59E0B)
     smaSeries = chart.addLineSeries({
         color: '#F59E0B',
         lineWidth: 1.5,
@@ -300,7 +300,7 @@ function initChartEngine() {
         crosshairMarkerVisible: false
     });
 
-    // AI Forecast Predicted Candles (TradingView Blue #2962FF)
+    // AI Forecast Predicted Candles (Blue #2962FF / Violet)
     forecastCandleSeries = chart.addCandlestickSeries({
         upColor: '#2962FF',
         downColor: '#7C3AED',
@@ -311,7 +311,7 @@ function initChartEngine() {
         priceLineVisible: false
     });
 
-    // Forecast Upper Boundary (TradingView Green #089981)
+    // Forecast Upper Boundary (Green #089981)
     forecastHighLine = chart.addLineSeries({
         color: '#089981',
         lineWidth: 1.5,
@@ -319,7 +319,7 @@ function initChartEngine() {
         title: 'Pred High'
     });
 
-    // Forecast Lower Boundary (TradingView Red #F23645)
+    // Forecast Lower Boundary (Red #F23645)
     forecastLowLine = chart.addLineSeries({
         color: '#F23645',
         lineWidth: 1.5,
@@ -327,7 +327,7 @@ function initChartEngine() {
         title: 'Pred Low'
     });
 
-    // Forecast Close Path (TradingView Blue #2962FF)
+    // Forecast Close Path (Electric Blue #2962FF)
     forecastCloseLine = chart.addLineSeries({
         color: '#2962FF',
         lineWidth: 2,
